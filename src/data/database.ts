@@ -1,0 +1,524 @@
+// ============================================
+// BASE DE DATOS SIMULADA (MOCK DATABASE)
+// ============================================
+// Este archivo simula una base de datos local usando localStorage y proporciona funciones CRUD para manejar los datos
+
+import type {
+  Usuario,
+  Producto,
+  ArticuloBlog,
+  DatosContacto,
+  Pedido,
+  Region,
+  CategoriaProducto,
+  CategoriaBlog,
+  EstadoPedido
+} from '../types';
+
+// ============================================
+// CONSTANTES
+// ============================================
+
+const STORAGE_KEYS = {
+  USUARIOS: 'usuarios',
+  PRODUCTOS: 'productos',
+  ARTICULOS_BLOG: 'articulosBlog',
+  CONTACTOS: 'contactos',
+  PEDIDOS: 'pedidos',
+  USUARIO_ACTUAL: 'usuarioActual',
+  CARRITO: 'carrito'
+} as const;
+
+// ============================================
+// DATOS INICIALES - PRODUCTOS
+// ============================================
+
+export const productosIniciales: Producto[] = [
+  {
+    id: 1,
+    nombre: "Zapatos Oxford Clásicos",
+    precio: 89990,
+    imagen: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400",
+    categoria: "hombre",
+    descripcion: "Elegantes zapatos Oxford de cuero genuino para hombre",
+    stock: 15,
+    destacado: true
+  },
+  {
+    id: 2,
+    nombre: "Tacones Elegantes",
+    precio: 75990,
+    imagen: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400",
+    categoria: "mujer",
+    descripcion: "Tacones altos elegantes para ocasiones especiales",
+    stock: 5,
+    destacado: true
+  },
+  {
+    id: 3,
+    nombre: "Zapatillas Deportivas",
+    precio: 65990,
+    imagen: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
+    categoria: "deportivos",
+    descripcion: "Zapatillas deportivas cómodas para running",
+    stock: 20,
+    destacado: true
+  },
+  {
+    id: 4,
+    nombre: "Botas de Cuero",
+    precio: 125990,
+    imagen: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400",
+    categoria: "hombre",
+    descripcion: "Botas robustas de cuero para uso diario",
+    stock: 12,
+    destacado: false
+  },
+  {
+    id: 5,
+    nombre: "Sandalias de Verano",
+    precio: 45990,
+    imagen: "https://images.unsplash.com/photo-1603808033176-e2f2d3a00645?w=400",
+    categoria: "mujer",
+    descripcion: "Sandalias cómodas para el verano",
+    stock: 25,
+    destacado: false
+  },
+  {
+    id: 6,
+    nombre: "Zapatos Escolares",
+    precio: 35990,
+    imagen: "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400",
+    categoria: "niños",
+    descripcion: "Zapatos escolares resistentes y cómodos",
+    stock: 0,
+    destacado: false
+  },
+  {
+    id: 7,
+    nombre: "Zapatillas Casual",
+    precio: 55990,
+    imagen: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400",
+    categoria: "mujer",
+    descripcion: "Zapatillas casuales para uso diario",
+    stock: 18,
+    destacado: true
+  },
+  {
+    id: 8,
+    nombre: "Zapatos de Vestir",
+    precio: 95990,
+    imagen: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400",
+    categoria: "hombre",
+    descripcion: "Zapatos formales para eventos especiales",
+    stock: 10,
+    destacado: false
+  }
+];
+
+// ============================================
+// DATOS INICIALES - USUARIOS
+// ============================================
+
+export const usuariosIniciales: Usuario[] = [
+  {
+    id: '1',
+    run: '11111111-1',
+    nombre: 'Administrador Sistema',
+    email: 'admin@stepstyle.cl',
+    contrasena: 'admin123',
+    rol: 'administrador',
+    fechaRegistro: '2025-01-01T00:00:00.000Z'
+  },
+  {
+    id: '2',
+    run: '22222222-2',
+    nombre: 'Vendedor Principal',
+    email: 'vendedor@stepstyle.cl',
+    contrasena: 'vende123',
+    rol: 'vendedor',
+    fechaRegistro: '2025-01-01T00:00:00.000Z'
+  },
+  {
+    id: '3',
+    run: '33333333-3',
+    nombre: 'Cliente Demo',
+    email: 'cliente@gmail.com',
+    contrasena: 'cliente123',
+    rol: 'cliente',
+    genero: 'masculino',
+    fechaNacimiento: '1990-01-01',
+    region: 'Metropolitana de Santiago',
+    comuna: 'Santiago',
+    direccion: 'Calle Falsa 123',
+    telefono: '+56912345678',
+    fechaRegistro: '2025-01-15T00:00:00.000Z'
+  }
+];
+
+// ============================================
+// DATOS INICIALES - ARTÍCULOS BLOG
+// ============================================
+
+export const articulosBlogIniciales: ArticuloBlog[] = [
+  {
+    id: 1,
+    titulo: "Tendencias Otoño 2025",
+    resumen: "Los estilos que marcarán esta temporada.",
+    categoria: "tendencias",
+    fecha: "2025-09-20",
+    imagen: "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600",
+    contenido: "Este otoño trae botines con texturas, colores tierra y materiales sustentables que están dominando las tendencias de calzado.",
+    autor: "María González"
+  },
+  {
+    id: 2,
+    titulo: "Cuidar Zapatos de Cuero",
+    resumen: "Mantén tus zapatos como nuevos.",
+    categoria: "cuidado",
+    fecha: "2025-09-18",
+    imagen: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600",
+    contenido: "El cuero requiere cuidados específicos. Limpia, nutre y protege tus zapatos regularmente para que duren años.",
+    autor: "Carlos Rodríguez"
+  },
+  {
+    id: 3,
+    titulo: "5 Zapatos Esenciales",
+    resumen: "Los básicos que no pueden faltar.",
+    categoria: "consejos",
+    fecha: "2025-09-15",
+    imagen: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
+    contenido: "Sneakers blancos, zapatos oxford, botines versátiles, sandalias cómodas y zapatos deportivos. Estos cinco tipos cubren todas las ocasiones.",
+    autor: "Ana Martínez"
+  },
+  {
+    id: 4,
+    titulo: "Combinar con Estilo",
+    resumen: "Aprende las reglas básicas del matching.",
+    categoria: "estilo",
+    fecha: "2025-09-12",
+    imagen: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600",
+    contenido: "La combinación correcta de zapatos puede transformar cualquier outfit. Conoce las reglas fundamentales y cuándo romperlas.",
+    autor: "Luis Torres"
+  }
+];
+
+// ============================================
+// REGIONES Y COMUNAS DE CHILE
+// ============================================
+
+export const regionesComunas: Region[] = [
+  {
+    value: "Metropolitana de Santiago",
+    label: "Metropolitana de Santiago",
+    comunas: [
+      { value: "Santiago", label: "Santiago" },
+      { value: "Providencia", label: "Providencia" },
+      { value: "Las Condes", label: "Las Condes" },
+      { value: "Ñuñoa", label: "Ñuñoa" },
+      { value: "Maipú", label: "Maipú" },
+      { value: "La Florida", label: "La Florida" },
+      { value: "Puente Alto", label: "Puente Alto" }
+    ]
+  },
+  {
+    value: "Valparaíso",
+    label: "Valparaíso",
+    comunas: [
+      { value: "Valparaíso", label: "Valparaíso" },
+      { value: "Viña del Mar", label: "Viña del Mar" },
+      { value: "Quilpué", label: "Quilpué" },
+      { value: "Villa Alemana", label: "Villa Alemana" }
+    ]
+  },
+  {
+    value: "Biobío",
+    label: "Biobío",
+    comunas: [
+      { value: "Concepción", label: "Concepción" },
+      { value: "Talcahuano", label: "Talcahuano" },
+      { value: "Los Ángeles", label: "Los Ángeles" },
+      { value: "Chillán", label: "Chillán" }
+    ]
+  }
+];
+
+// ============================================
+// FUNCIONES DE INICIALIZACIÓN
+// ============================================
+
+// Inicializa el localStorage con datos por defecto si no existen
+export const inicializarDatos = (): void => {
+  // Inicializar productos
+  if (!localStorage.getItem(STORAGE_KEYS.PRODUCTOS)) {
+    localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(productosIniciales));
+  }
+
+  // Inicializar usuarios
+  if (!localStorage.getItem(STORAGE_KEYS.USUARIOS)) {
+    localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(usuariosIniciales));
+  }
+
+  // Inicializar artículos blog
+  if (!localStorage.getItem(STORAGE_KEYS.ARTICULOS_BLOG)) {
+    localStorage.setItem(STORAGE_KEYS.ARTICULOS_BLOG, JSON.stringify(articulosBlogIniciales));
+  }
+
+  // Inicializar arrays vacíos para contactos y pedidos
+  if (!localStorage.getItem(STORAGE_KEYS.CONTACTOS)) {
+    localStorage.setItem(STORAGE_KEYS.CONTACTOS, JSON.stringify([]));
+  }
+
+  if (!localStorage.getItem(STORAGE_KEYS.PEDIDOS)) {
+    localStorage.setItem(STORAGE_KEYS.PEDIDOS, JSON.stringify([]));
+  }
+
+  // Inicializar carrito vacío
+  if (!localStorage.getItem(STORAGE_KEYS.CARRITO)) {
+    localStorage.setItem(STORAGE_KEYS.CARRITO, JSON.stringify([]));
+  }
+};
+
+// Resetea todos los datos a su estado inicial
+export const resetearDatos = (): void => {
+  localStorage.clear();
+  inicializarDatos();
+};
+
+// ============================================
+// FUNCIONES CRUD - PRODUCTOS
+// ============================================
+
+// Obtiene todos los productos
+export const obtenerProductos = (): Producto[] => {
+  const productos = localStorage.getItem(STORAGE_KEYS.PRODUCTOS);
+  return productos ? JSON.parse(productos) : [];
+};
+
+// Obtiene un producto por su ID
+export const obtenerProductoPorId = (id: number): Producto | undefined => {
+  const productos = obtenerProductos();
+  return productos.find(p => p.id === id);
+};
+
+// Obtiene productos destacados
+export const obtenerProductosDestacados = (): Producto[] => {
+  const productos = obtenerProductos();
+  return productos.filter(p => p.destacado && p.stock > 0);
+};
+
+// Filtra productos por categoría
+export const filtrarProductosPorCategoria = (categoria: CategoriaProducto | 'todos'): Producto[] => {
+  const productos = obtenerProductos();
+  if (categoria === 'todos') return productos;
+  return productos.filter(p => p.categoria === categoria);
+};
+
+// Crea un nuevo producto
+export const crearProducto = (producto: Omit<Producto, 'id'>): Producto => {
+  const productos = obtenerProductos();
+  const nuevoId = Math.max(0, ...productos.map(p => p.id)) + 1;
+  const nuevoProducto: Producto = { ...producto, id: nuevoId };
+  productos.push(nuevoProducto);
+  localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(productos));
+  return nuevoProducto;
+};
+
+// Actualiza un producto existente
+export const actualizarProducto = (id: number, datosActualizados: Partial<Producto>): boolean => {
+  const productos = obtenerProductos();
+  const indice = productos.findIndex(p => p.id === id);
+  
+  if (indice === -1) return false;
+  
+  productos[indice] = { ...productos[indice], ...datosActualizados };
+  localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(productos));
+  return true;
+};
+
+// Elimina un producto
+export const eliminarProducto = (id: number): boolean => {
+  const productos = obtenerProductos();
+  const productosFiltrados = productos.filter(p => p.id !== id);
+  
+  if (productos.length === productosFiltrados.length) return false;
+  
+  localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(productosFiltrados));
+  return true;
+};
+
+// Actualiza el stock de un producto
+export const actualizarStock = (id: number, cantidad: number): boolean => {
+  return actualizarProducto(id, { stock: cantidad });
+};
+
+// ============================================
+// FUNCIONES CRUD - USUARIOS
+// ============================================
+
+// Obtiene todos los usuarios
+export const obtenerUsuarios = (): Usuario[] => {
+  const usuarios = localStorage.getItem(STORAGE_KEYS.USUARIOS);
+  return usuarios ? JSON.parse(usuarios) : [];
+};
+
+// Obtiene un usuario por email
+export const obtenerUsuarioPorEmail = (email: string): Usuario | undefined => {
+  const usuarios = obtenerUsuarios();
+  return usuarios.find(u => u.email.toLowerCase() === email.toLowerCase());
+};
+
+// Obtiene un usuario por ID
+export const obtenerUsuarioPorId = (id: string): Usuario | undefined => {
+  const usuarios = obtenerUsuarios();
+  return usuarios.find(u => u.id === id);
+};
+
+// Crea un nuevo usuario
+export const crearUsuario = (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Usuario => {
+  const usuarios = obtenerUsuarios();
+  
+  // Verificar si el email ya existe
+  if (usuarios.some(u => u.email.toLowerCase() === usuario.email.toLowerCase())) {
+    throw new Error('El email ya está registrado');
+  }
+
+  const nuevoId = (usuarios.length + 1).toString();
+  const nuevoUsuario: Usuario = {
+    ...usuario,
+    id: nuevoId,
+    fechaRegistro: new Date().toISOString()
+  };
+  
+  usuarios.push(nuevoUsuario);
+  localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(usuarios));
+  return nuevoUsuario;
+};
+
+// Actualiza un usuario existente
+export const actualizarUsuario = (id: string, datosActualizados: Partial<Usuario>): boolean => {
+  const usuarios = obtenerUsuarios();
+  const indice = usuarios.findIndex(u => u.id === id);
+  
+  if (indice === -1) return false;
+  
+  usuarios[indice] = { ...usuarios[indice], ...datosActualizados };
+  localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(usuarios));
+  return true;
+};
+
+// Elimina un usuario
+export const eliminarUsuario = (id: string): boolean => {
+  const usuarios = obtenerUsuarios();
+  const usuariosFiltrados = usuarios.filter(u => u.id !== id);
+  
+  if (usuarios.length === usuariosFiltrados.length) return false;
+  
+  localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(usuariosFiltrados));
+  return true;
+};
+
+// ============================================
+// FUNCIONES CRUD - ARTÍCULOS BLOG
+// ============================================
+
+// Obtiene todos los artículos del blog
+export const obtenerArticulosBlog = (): ArticuloBlog[] => {
+  const articulos = localStorage.getItem(STORAGE_KEYS.ARTICULOS_BLOG);
+  return articulos ? JSON.parse(articulos) : [];
+};
+
+// Obtiene un artículo por ID
+export const obtenerArticuloPorId = (id: number): ArticuloBlog | undefined => {
+  const articulos = obtenerArticulosBlog();
+  return articulos.find(a => a.id === id);
+};
+
+// Filtra artículos por categoría
+export const filtrarArticulosPorCategoria = (categoria: CategoriaBlog | 'todos'): ArticuloBlog[] => {
+  const articulos = obtenerArticulosBlog();
+  if (categoria === 'todos') return articulos;
+  return articulos.filter(a => a.categoria === categoria);
+};
+
+// ============================================
+// FUNCIONES CRUD - CONTACTOS
+// ============================================
+
+// Obtiene todos los contactos
+export const obtenerContactos = (): DatosContacto[] => {
+  const contactos = localStorage.getItem(STORAGE_KEYS.CONTACTOS);
+  return contactos ? JSON.parse(contactos) : [];
+};
+
+// Guarda un nuevo mensaje de contacto
+export const guardarContacto = (contacto: Omit<DatosContacto, 'fecha'>): DatosContacto => {
+  const contactos = obtenerContactos();
+  const nuevoContacto: DatosContacto = {
+    ...contacto,
+    fecha: new Date().toISOString()
+  };
+  contactos.push(nuevoContacto);
+  localStorage.setItem(STORAGE_KEYS.CONTACTOS, JSON.stringify(contactos));
+  return nuevoContacto;
+};
+
+// ============================================
+// FUNCIONES CRUD - PEDIDOS
+// ============================================
+
+// Obtiene todos los pedidos
+export const obtenerPedidos = (): Pedido[] => {
+  const pedidos = localStorage.getItem(STORAGE_KEYS.PEDIDOS);
+  return pedidos ? JSON.parse(pedidos) : [];
+};
+
+// Obtiene pedidos de un usuario específico
+export const obtenerPedidosPorUsuario = (usuarioId: string): Pedido[] => {
+  const pedidos = obtenerPedidos();
+  return pedidos.filter(p => p.usuarioId === usuarioId);
+};
+
+// Crea un nuevo pedido
+export const crearPedido = (pedido: Omit<Pedido, 'id' | 'fecha'>): Pedido => {
+  const pedidos = obtenerPedidos();
+  const nuevoId = `PED-${Date.now()}`;
+  const nuevoPedido: Pedido = {
+    ...pedido,
+    id: nuevoId,
+    fecha: new Date().toISOString()
+  };
+  pedidos.push(nuevoPedido);
+  localStorage.setItem(STORAGE_KEYS.PEDIDOS, JSON.stringify(pedidos));
+  return nuevoPedido;
+};
+
+// Actualiza el estado de un pedido
+export const actualizarEstadoPedido = (id: string, estado: EstadoPedido): boolean => {
+  const pedidos = obtenerPedidos();
+  const indice = pedidos.findIndex(p => p.id === id);
+  
+  if (indice === -1) return false;
+  
+  pedidos[indice].estado = estado;
+  localStorage.setItem(STORAGE_KEYS.PEDIDOS, JSON.stringify(pedidos));
+  return true;
+};
+
+// ============================================
+// FUNCIONES DE UTILIDAD
+// ============================================
+
+// Obtiene las claves de almacenamiento
+export const getStorageKeys = () => STORAGE_KEYS;
+
+// Exporta todos los datos del sistema
+export const exportarDatos = () => {
+  return {
+    productos: obtenerProductos(),
+    usuarios: obtenerUsuarios(),
+    articulos: obtenerArticulosBlog(),
+    contactos: obtenerContactos(),
+    pedidos: obtenerPedidos()
+  };
+};
