@@ -1,7 +1,4 @@
-// ============================================
 // BASE DE DATOS SIMULADA (MOCK DATABASE)
-// ============================================
-// Este archivo simula una base de datos local usando localStorage y proporciona funciones CRUD para manejar los datos
 
 import type {
   Usuario,
@@ -15,9 +12,7 @@ import type {
   EstadoPedido
 } from '../types';
 
-// ============================================
 // CONSTANTES
-// ============================================
 
 const STORAGE_KEYS = {
   USUARIOS: 'usuarios',
@@ -29,9 +24,7 @@ const STORAGE_KEYS = {
   CARRITO: 'carrito'
 } as const;
 
-// ============================================
 // DATOS INICIALES - PRODUCTOS
-// ============================================
 
 export const productosIniciales: Producto[] = [
   {
@@ -116,9 +109,7 @@ export const productosIniciales: Producto[] = [
   }
 ];
 
-// ============================================
 // DATOS INICIALES - USUARIOS
-// ============================================
 
 export const usuariosIniciales: Usuario[] = [
   {
@@ -156,9 +147,7 @@ export const usuariosIniciales: Usuario[] = [
   }
 ];
 
-// ============================================
 // DATOS INICIALES - ARTÍCULOS BLOG
-// ============================================
 
 export const articulosBlogIniciales: ArticuloBlog[] = [
   {
@@ -203,9 +192,7 @@ export const articulosBlogIniciales: ArticuloBlog[] = [
   }
 ];
 
-// ============================================
 // REGIONES Y COMUNAS DE CHILE
-// ============================================
 
 export const regionesComunas: Region[] = [
   {
@@ -243,9 +230,7 @@ export const regionesComunas: Region[] = [
   }
 ];
 
-// ============================================
 // FUNCIONES DE INICIALIZACIÓN
-// ============================================
 
 // Inicializa el localStorage con datos por defecto si no existen
 export const inicializarDatos = (): void => {
@@ -285,9 +270,7 @@ export const resetearDatos = (): void => {
   inicializarDatos();
 };
 
-// ============================================
 // FUNCIONES CRUD - PRODUCTOS
-// ============================================
 
 // Obtiene todos los productos
 export const obtenerProductos = (): Producto[] => {
@@ -352,9 +335,7 @@ export const actualizarStock = (id: number, cantidad: number): boolean => {
   return actualizarProducto(id, { stock: cantidad });
 };
 
-// ============================================
 // FUNCIONES CRUD - USUARIOS
-// ============================================
 
 // Obtiene todos los usuarios
 export const obtenerUsuarios = (): Usuario[] => {
@@ -418,9 +399,7 @@ export const eliminarUsuario = (id: string): boolean => {
   return true;
 };
 
-// ============================================
 // FUNCIONES CRUD - ARTÍCULOS BLOG
-// ============================================
 
 // Obtiene todos los artículos del blog
 export const obtenerArticulosBlog = (): ArticuloBlog[] => {
@@ -441,9 +420,7 @@ export const filtrarArticulosPorCategoria = (categoria: CategoriaBlog | 'todos')
   return articulos.filter(a => a.categoria === categoria);
 };
 
-// ============================================
 // FUNCIONES CRUD - CONTACTOS
-// ============================================
 
 // Obtiene todos los contactos
 export const obtenerContactos = (): DatosContacto[] => {
@@ -463,9 +440,7 @@ export const guardarContacto = (contacto: Omit<DatosContacto, 'fecha'>): DatosCo
   return nuevoContacto;
 };
 
-// ============================================
 // FUNCIONES CRUD - PEDIDOS
-// ============================================
 
 // Obtiene todos los pedidos
 export const obtenerPedidos = (): Pedido[] => {
@@ -505,9 +480,7 @@ export const actualizarEstadoPedido = (id: string, estado: EstadoPedido): boolea
   return true;
 };
 
-// ============================================
 // FUNCIONES DE UTILIDAD
-// ============================================
 
 // Obtiene las claves de almacenamiento
 export const getStorageKeys = () => STORAGE_KEYS;

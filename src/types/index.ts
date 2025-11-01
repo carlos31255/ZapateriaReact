@@ -1,6 +1,4 @@
-// ============================================
 // TIPOS Y INTERFACES PRINCIPALES DE LA APLICACIÓN
-// ============================================
 
 // Tipos de roles de usuario disponibles en el sistema
 export type RolUsuario = 'cliente' | 'vendedor' | 'administrador';
@@ -14,9 +12,8 @@ export type EstadoPedido = 'pendiente' | 'procesando' | 'enviado' | 'entregado' 
 // Categorías de artículos del blog
 export type CategoriaBlog = 'tendencias' | 'cuidado' | 'consejos' | 'estilo';
 
-// ============================================
+// 
 // INTERFACE DE USUARIO
-// ============================================
 
 // Interfaz que representa un usuario en el sistema
 export interface Usuario {
@@ -62,9 +59,7 @@ export interface CredencialesLogin {
   contrasena: string;
 }
 
-// ============================================
 // INTERFACE DE PRODUCTO
-// ============================================
 
 // Interfaz que representa un producto en la tienda
 export interface Producto {
@@ -90,9 +85,7 @@ export interface FiltrosProducto {
   busqueda?: string;
 }
 
-// ============================================
 // INTERFACE DE CARRITO
-// ============================================
 
 // Estado del carrito de compras
 export interface Carrito {
@@ -101,9 +94,7 @@ export interface Carrito {
   cantidadTotal: number;
 }
 
-// ============================================
 // INTERFACE DE PEDIDO
-// ============================================
 
 // Interfaz que representa un pedido
 export interface Pedido {
@@ -120,9 +111,7 @@ export interface Pedido {
   direccionEnvio?: string;
 }
 
-// ============================================
 // INTERFACE DE BLOG
-// ============================================
 
 // Interfaz que representa un artículo del blog
 export interface ArticuloBlog {
@@ -136,9 +125,7 @@ export interface ArticuloBlog {
   autor?: string;
 }
 
-// ============================================
 // INTERFACE DE CONTACTO
-// ============================================
 
 // Datos del formulario de contacto
 export interface DatosContacto {
@@ -148,9 +135,7 @@ export interface DatosContacto {
   fecha: string;
 }
 
-// ============================================
 // INTERFACE DE REGIONES Y COMUNAS
-// ============================================
 
 // Interfaz para comunas
 export interface Comuna {
@@ -165,9 +150,7 @@ export interface Region {
   comunas: Comuna[];
 }
 
-// ============================================
 // TIPOS DE RESPUESTA DE API
-// ============================================
 
 // Respuesta genérica de la API
 export interface ApiResponse<T> {
