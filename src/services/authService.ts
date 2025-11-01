@@ -1,6 +1,4 @@
-// ============================================
 // SERVICIO DE AUTENTICACIÓN
-// ============================================
 // Este servicio maneja el login, registro y sesión de usuarios usando Promesas y simulando llamadas API
 
 import type { Usuario, CredencialesLogin, DatosRegistro, UsuarioAutenticado, AuthResponse } from '../types';
@@ -8,9 +6,7 @@ import { obtenerUsuarioPorEmail, crearUsuario, getStorageKeys } from '../data/da
 
 const STORAGE_KEYS = getStorageKeys();
 
-// ============================================
 // FUNCIONES DE AUTENTICACIÓN
-// ============================================
 
 // Simula un delay de red para hacer más realista la experiencia
 const simularDelay = (ms: number = 800): Promise<void> => {
@@ -59,211 +55,192 @@ export const esMayorDeEdad = (fechaNacimiento: string): boolean => {
   return edad >= 18;
 };
 
-// ============================================
 // SERVICIO DE LOGIN CON PROMESAS
-// ============================================
 
-// Login de usuario usando Promesas
-export const login = (credenciales: CredencialesLogin): Promise<AuthResponse> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Simular delay de red
-      await simularDelay();
+// Login de usuario - Devuelve una Promesa (sintaxis moderna con async/await)
+export const login = async (credenciales: CredencialesLogin): Promise<AuthResponse> => {
+  try {
+    // Simular delay de red
+    await simularDelay();
 
-      // Validaciones
-      if (!credenciales.email || !credenciales.contrasena) {
-        reject({
-          success: false,
-          error: 'Email y contraseña son requeridos'
-        });
-        return;
-      }
-
-      if (!validarEmail(credenciales.email)) {
-        reject({
-          success: false,
-          error: 'Email no válido'
-        });
-        return;
-      }
-
-      // Buscar usuario en la base de datos
-      const usuario = obtenerUsuarioPorEmail(credenciales.email);
-
-      if (!usuario) {
-        reject({
-          success: false,
-          error: 'Usuario no encontrado'
-        });
-        return;
-      }
-
-      // Verificar contraseña
-      if (usuario.contrasena !== credenciales.contrasena) {
-        reject({
-          success: false,
-          error: 'Contraseña incorrecta'
-        });
-        return;
-      }
-
-      // Crear usuario autenticado (sin contraseña)
-      const usuarioAutenticado: UsuarioAutenticado = {
-        id: usuario.id,
-        run: usuario.run,
-        nombre: usuario.nombre,
-        email: usuario.email,
-        rol: usuario.rol,
-        genero: usuario.genero,
-        fechaNacimiento: usuario.fechaNacimiento,
-        region: usuario.region,
-        comuna: usuario.comuna,
-        direccion: usuario.direccion,
-        telefono: usuario.telefono,
-        fechaRegistro: usuario.fechaRegistro,
-        logueado: true
-      };
-
-      // Guardar sesión en localStorage
-      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
-
-      // Respuesta exitosa
-      resolve({
-        success: true,
-        usuario: usuarioAutenticado,
-        message: 'Login exitoso'
-      });
-
-    } catch (error) {
-      reject({
+    // Validaciones
+    if (!credenciales.email || !credenciales.contrasena) {
+      return {
         success: false,
-        error: 'Error al procesar el login'
-      });
+        error: 'Email y contraseña son requeridos'
+      };
     }
-  });
+
+    if (!validarEmail(credenciales.email)) {
+      return {
+        success: false,
+        error: 'Email no válido'
+      };
+    }
+
+    // Buscar usuario en la base de datos
+    const usuario = obtenerUsuarioPorEmail(credenciales.email);
+
+    if (!usuario) {
+      return {
+        success: false,
+        error: 'Usuario no encontrado'
+      };
+    }
+
+    // Verificar contraseña
+    if (usuario.contrasena !== credenciales.contrasena) {
+      return {
+        success: false,
+        error: 'Contraseña incorrecta'
+      };
+    }
+
+    // Crear usuario autenticado (sin contraseña)
+    const usuarioAutenticado: UsuarioAutenticado = {
+      id: usuario.id,
+      run: usuario.run,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      rol: usuario.rol,
+      genero: usuario.genero,
+      fechaNacimiento: usuario.fechaNacimiento,
+      region: usuario.region,
+      comuna: usuario.comuna,
+      direccion: usuario.direccion,
+      telefono: usuario.telefono,
+      fechaRegistro: usuario.fechaRegistro,
+      logueado: true
+    };
+
+    // Guardar sesión en localStorage
+    localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
+
+    // Respuesta exitosa
+    return {
+      success: true,
+      usuario: usuarioAutenticado,
+      message: 'Login exitoso'
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Error al procesar el login'
+    };
+  }
 };
 
-// ============================================
 // SERVICIO DE REGISTRO CON PROMESAS
-// ============================================
 
-// Registro de nuevo usuario usando Promesas
-export const registrar = (datos: DatosRegistro): Promise<AuthResponse> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Simular delay de red
-      await simularDelay(1000);
+// Registro de nuevo usuario - Devuelve una Promesa (sintaxis moderna con async/await)
+export const registrar = async (datos: DatosRegistro): Promise<AuthResponse> => {
+  try {
+    // Simular delay de red
+    await simularDelay(1000);
 
-      // Validaciones
-      if (!datos.nombre || !datos.email || !datos.contrasena || !datos.run) {
-        reject({
-          success: false,
-          error: 'Todos los campos obligatorios deben estar completos'
-        });
-        return;
-      }
-
-      if (!validarEmail(datos.email)) {
-        reject({
-          success: false,
-          error: 'Email no válido'
-        });
-        return;
-      }
-
-      if (!validarRUT(datos.run)) {
-        reject({
-          success: false,
-          error: 'RUT no válido'
-        });
-        return;
-      }
-
-      if (datos.contrasena.length < 6) {
-        reject({
-          success: false,
-          error: 'La contraseña debe tener al menos 6 caracteres'
-        });
-        return;
-      }
-
-      if (datos.contrasena !== datos.confirmarContrasena) {
-        reject({
-          success: false,
-          error: 'Las contraseñas no coinciden'
-        });
-        return;
-      }
-
-      if (datos.fechaNacimiento && !esMayorDeEdad(datos.fechaNacimiento)) {
-        reject({
-          success: false,
-          error: 'Debe ser mayor de 18 años para registrarse'
-        });
-        return;
-      }
-
-      // Verificar si el email ya existe
-      const usuarioExistente = obtenerUsuarioPorEmail(datos.email);
-      if (usuarioExistente) {
-        reject({
-          success: false,
-          error: 'El email ya está registrado'
-        });
-        return;
-      }
-
-      // Crear nuevo usuario
-      const nuevoUsuario: Omit<Usuario, 'id' | 'fechaRegistro'> = {
-        run: datos.run,
-        nombre: datos.nombre,
-        email: datos.email,
-        contrasena: datos.contrasena,
-        rol: datos.rol || 'cliente',
-        genero: datos.genero,
-        fechaNacimiento: datos.fechaNacimiento,
-        region: datos.region,
-        comuna: datos.comuna,
-        direccion: datos.direccion,
-        telefono: datos.telefono
-      };
-
-      const usuarioCreado = crearUsuario(nuevoUsuario);
-
-      // Crear usuario autenticado
-      const usuarioAutenticado: UsuarioAutenticado = {
-        id: usuarioCreado.id,
-        run: usuarioCreado.run,
-        nombre: usuarioCreado.nombre,
-        email: usuarioCreado.email,
-        rol: usuarioCreado.rol,
-        genero: usuarioCreado.genero,
-        fechaNacimiento: usuarioCreado.fechaNacimiento,
-        region: usuarioCreado.region,
-        comuna: usuarioCreado.comuna,
-        direccion: usuarioCreado.direccion,
-        telefono: usuarioCreado.telefono,
-        fechaRegistro: usuarioCreado.fechaRegistro,
-        logueado: true
-      };
-
-      // Guardar sesión en localStorage
-      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
-
-      // Respuesta exitosa
-      resolve({
-        success: true,
-        usuario: usuarioAutenticado,
-        message: 'Registro exitoso'
-      });
-
-    } catch (error) {
-      reject({
+    // Validaciones
+    if (!datos.nombre || !datos.email || !datos.contrasena || !datos.run) {
+      return {
         success: false,
-        error: error instanceof Error ? error.message : 'Error al procesar el registro'
-      });
+        error: 'Todos los campos obligatorios deben estar completos'
+      };
     }
-  });
+
+    if (!validarEmail(datos.email)) {
+      return {
+        success: false,
+        error: 'Email no válido'
+      };
+    }
+
+    if (!validarRUT(datos.run)) {
+      return {
+        success: false,
+        error: 'RUT no válido'
+      };
+    }
+
+    if (datos.contrasena.length < 6) {
+      return {
+        success: false,
+        error: 'La contraseña debe tener al menos 6 caracteres'
+      };
+    }
+
+    if (datos.contrasena !== datos.confirmarContrasena) {
+      return {
+        success: false,
+        error: 'Las contraseñas no coinciden'
+      };
+    }
+
+    if (datos.fechaNacimiento && !esMayorDeEdad(datos.fechaNacimiento)) {
+      return {
+        success: false,
+        error: 'Debe ser mayor de 18 años para registrarse'
+      };
+    }
+
+    // Verificar si el email ya existe
+    const usuarioExistente = obtenerUsuarioPorEmail(datos.email);
+    if (usuarioExistente) {
+      return {
+        success: false,
+        error: 'El email ya está registrado'
+      };
+    }
+
+    // Crear nuevo usuario
+    const nuevoUsuario: Omit<Usuario, 'id' | 'fechaRegistro'> = {
+      run: datos.run,
+      nombre: datos.nombre,
+      email: datos.email,
+      contrasena: datos.contrasena,
+      rol: datos.rol || 'cliente',
+      genero: datos.genero,
+      fechaNacimiento: datos.fechaNacimiento,
+      region: datos.region,
+      comuna: datos.comuna,
+      direccion: datos.direccion,
+      telefono: datos.telefono
+    };
+
+    const usuarioCreado = crearUsuario(nuevoUsuario);
+
+    // Crear usuario autenticado
+    const usuarioAutenticado: UsuarioAutenticado = {
+      id: usuarioCreado.id,
+      run: usuarioCreado.run,
+      nombre: usuarioCreado.nombre,
+      email: usuarioCreado.email,
+      rol: usuarioCreado.rol,
+      genero: usuarioCreado.genero,
+      fechaNacimiento: usuarioCreado.fechaNacimiento,
+      region: usuarioCreado.region,
+      comuna: usuarioCreado.comuna,
+      direccion: usuarioCreado.direccion,
+      telefono: usuarioCreado.telefono,
+      fechaRegistro: usuarioCreado.fechaRegistro,
+      logueado: true
+    };
+
+    // Guardar sesión en localStorage
+    localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
+
+    // Respuesta exitosa
+    return {
+      success: true,
+      usuario: usuarioAutenticado,
+      message: 'Registro exitoso'
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error al procesar el registro'
+    };
+  }
 };
 
 // GESTIÓN DE SESIÓN

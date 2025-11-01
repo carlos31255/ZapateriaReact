@@ -1,7 +1,5 @@
-// ============================================
 // CONTEXT DE AUTENTICACIÓN
-// ============================================
-// Este context maneja el estado global de autenticación del usuario
+// maneja el estado global de autenticación del usuario
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
@@ -14,9 +12,7 @@ import {
   estaAutenticado as verificarAutenticacion
 } from '../services/authService';
 
-// ============================================
 // TIPOS
-// ============================================
 
 interface AuthContextType {
   usuario: UsuarioAutenticado | null;
@@ -35,9 +31,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ============================================
 // PROVIDER DEL CONTEXT
-// ============================================
 
 interface AuthProviderProps {
   children: ReactNode;
