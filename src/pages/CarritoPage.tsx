@@ -1,6 +1,10 @@
-// PÁGINA DEL CARRITO
+import { useCart } from '../context/CartContext';
+import { CartItem, CartSummary } from '../components/cart/cart-components.index';
+import { Link } from 'react-router-dom';
 
 export const CarritoPage = () => {
+  const { carrito } = useCart();
+
   return (
     <div className="container">
       <div className="py-5">
@@ -8,38 +12,25 @@ export const CarritoPage = () => {
         
         <div className="row">
           <div className="col-md-8">
-            <div className="text-center py-5">
-              <h3>Tu carrito está vacío</h3>
-              <p className="text-muted">¿Por qué no explores nuestros productos?</p>
-              <a href="/productos" className="btn btn-primary">
-                Ver Productos
-              </a>
-            </div>
+            {carrito.items.length === 0 ? (
+              <div className="text-center py-5">
+                <h3>Tu carrito está vacío</h3>
+                <p className="text-muted">¿Por qué no explores nuestros productos?</p>
+                <Link to="/productos" className="btn btn-primary">
+                  Ver Productos
+                </Link>
+              </div>
+            ) : (
+              <div>
+                {carrito.items.map((item) => (
+                  <CartItem key={item.id} item={item} />
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="col-md-4">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">Resumen del Pedido</h5>
-                <hr />
-                <div className="d-flex justify-content-between">
-                  <span>Subtotal:</span>
-                  <span>$0</span>
-                </div>
-                <div className="d-flex justify-content-between">
-                  <span>Descuento:</span>
-                  <span>$0</span>
-                </div>
-                <hr />
-                <div className="d-flex justify-content-between fw-bold">
-                  <span>Total:</span>
-                  <span>$0</span>
-                </div>
-                <button className="btn btn-primary w-100 mt-3" disabled>
-                  Proceder al Pago
-                </button>
-              </div>
-            </div>
+            <CartSummary />
           </div>
         </div>
       </div>

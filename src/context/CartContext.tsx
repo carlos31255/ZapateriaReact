@@ -1,11 +1,8 @@
-// ============================================
 // CONTEXT DE CARRITO DE COMPRAS
-// ============================================
-// Este context maneja el estado global del carrito de compras
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { ProductoCarrito, Carrito } from '../types';
+import type { Carrito } from '../types';
 import {
   axiosObtenerCarrito,
   axiosAgregarAlCarrito,
@@ -14,9 +11,7 @@ import {
   axiosVaciarCarrito
 } from '../services/cartService';
 
-// ============================================
 // TIPOS
-// ============================================
 
 interface CartContextType {
   carrito: Carrito;
@@ -30,15 +25,11 @@ interface CartContextType {
   limpiarError: () => void;
 }
 
-// ============================================
 // CREACIÓN DEL CONTEXT
-// ============================================
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// ============================================
 // PROVIDER DEL CONTEXT
-// ============================================
 
 interface CartProviderProps {
   children: ReactNode;
@@ -184,10 +175,6 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
-
-// ============================================
-// HOOK PERSONALIZADO
-// ============================================
 
 // Hook para usar el context del carrito
 export const useCart = (): CartContextType => {

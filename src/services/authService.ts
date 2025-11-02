@@ -1,8 +1,14 @@
 // SERVICIO DE AUTENTICACIÓN
 // Este servicio maneja el login, registro y sesión de usuarios usando Promesas y simulando llamadas API
 
-import type { Usuario, CredencialesLogin, DatosRegistro, UsuarioAutenticado, AuthResponse } from '../types';
-import { obtenerUsuarioPorEmail, crearUsuario, getStorageKeys } from '../data/database';
+import type { Usuario, CredencialesLogin, DatosRegistro, UsuarioAutenticado, AuthResponse, ApiResponse } from '../types';
+import { 
+  obtenerUsuarioPorEmail, 
+  crearUsuario, 
+  getStorageKeys,
+  obtenerUsuarioPorId as getUsuarioById,
+  actualizarUsuario as updateUsuario
+} from '../data/database';
 
 const STORAGE_KEYS = getStorageKeys();
 
@@ -275,4 +281,90 @@ export const estaAutenticado = (): boolean => {
 export const tieneRol = (rol: 'cliente' | 'vendedor' | 'administrador'): boolean => {
   const usuario = obtenerUsuarioActual();
   return usuario !== null && usuario.rol === rol;
+};
+
+// GESTIÓN DE USUARIOS
+
+// Obtiene un usuario por su ID
+export const obtenerUsuarioPorId = async (id: string): Promise<ApiResponse<Usuario>> => {
+  try {
+    await simularDelay(300);
+    
+    const usuario = getUsuarioById(id);
+    
+    if (!usuario) {
+      return {
+        success: false,
+        error: 'Usuario no encontrado'
+      };
+    }
+    
+    return {
+      success: true,
+      data: usuario
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Error al obtener usuario'
+    };
+  }
+};
+
+// Actualiza los datos de un usuario
+export const actualizarUsuario = async (usuario: Usuario): Promise<ApiResponse<Usuario>> => {
+  try {
+    await simularDelay(500);
+    
+    const exito = updateUsuario(usuario.id, usuario);
+    
+    if (!exito) {
+      return {
+        success: false,
+        error: 'No se pudo actualizar el usuario'
+      };
+    }
+    
+    // Obtener el usuario actualizado
+    const usuarioActualizado = getUsuarioById(usuario.id);
+    
+    if (!usuarioActualizado) {
+      return {
+        success: false,
+        error: 'Error al obtener usuario actualizado'
+      };
+    }
+    
+    // Si es el usuario actual, actualizar la sesión
+    const usuarioActual = obtenerUsuarioActual();
+    if (usuarioActual && usuarioActual.id === usuario.id) {
+      const usuarioAutenticado: UsuarioAutenticado = {
+        id: usuarioActualizado.id,
+        run: usuarioActualizado.run,
+        nombre: usuarioActualizado.nombre,
+        email: usuarioActualizado.email,
+        rol: usuarioActualizado.rol,
+        genero: usuarioActualizado.genero,
+        fechaNacimiento: usuarioActualizado.fechaNacimiento,
+        region: usuarioActualizado.region,
+        comuna: usuarioActualizado.comuna,
+        direccion: usuarioActualizado.direccion,
+        telefono: usuarioActualizado.telefono,
+        fechaRegistro: usuarioActualizado.fechaRegistro,
+        logueado: true
+      };
+      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
+    }
+    
+    return {
+      success: true,
+      data: usuarioActualizado,
+      message: 'Usuario actualizado correctamente'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Error al actualizar usuario'
+    };
+  }
 };

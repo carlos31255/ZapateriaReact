@@ -9,9 +9,12 @@ import { ProductosPage } from '../pages/ProductosPage';
 import { BlogPage } from '../pages/BlogPage';
 import { NosotrosPage } from '../pages/NosotrosPage';
 import { ContactoPage } from '../pages/ContactoPage';
+import { LoginPage } from '../pages/LoginPage';
+import { RegisterPage } from '../pages/RegisterPage';
 
 // Páginas protegidas
 import { CarritoPage } from '../pages/CarritoPage';
+import { PerfilPage } from '../pages/PerfilPage';
 
 export const AppRoutes = () => {
   return (
@@ -33,6 +36,10 @@ export const AppRoutes = () => {
       {/* Contacto */}
       <Route path="/contacto" element={<ContactoPage />} />
 
+      {/* Autenticación */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/registro" element={<RegisterPage />} />
+
       {/* ==================== RUTAS PROTEGIDAS ==================== */}
       
       {/* Carrito - requiere autenticación */}
@@ -41,6 +48,16 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CarritoPage />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Perfil - requiere autenticación */}
+      <Route 
+        path="/perfil" 
+        element={
+          <ProtectedRoute>
+            <PerfilPage />
           </ProtectedRoute>
         } 
       />

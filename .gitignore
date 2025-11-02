@@ -8,6 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 DOCUMENTACION.md
+SISTEMA_AUTENTICACION.md
+ESTRUCTURA_INDEX.md
 node_modules
 dist
 dist-ssr
