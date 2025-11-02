@@ -1,6 +1,3 @@
-// ============================================
-// COMPONENTE DE RUTA PROTEGIDA
-// ============================================
 // Protege rutas que requieren autenticación
 
 import { Navigate } from 'react-router-dom';

@@ -1,6 +1,3 @@
-// ============================================
-// COMPONENTE DE RUTA PÚBLICA
-// ============================================
 // Redirige usuarios autenticados lejos de páginas públicas como login
 
 import { Navigate } from 'react-router-dom';

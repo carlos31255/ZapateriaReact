@@ -1,6 +1,3 @@
-// ============================================
-// COMPONENTE DE RUTA POR ROL
-// ============================================
 // Protege rutas que requieren un rol específico
 
 import { Navigate } from 'react-router-dom';

@@ -1,4 +1,4 @@
-// Pagina de productos con filtros y lista de productos
+// Página de productos con filtros y lista de productos
 
 import { useState, useEffect } from 'react';
 import { ProductList, ProductFilter } from '../components/products/products-components.index';
@@ -7,14 +7,16 @@ import type { FilterState }  from '../components/products/products-components.in
 import type { Producto } from '../types';
 
 export const ProductosPage = () => {
+  // Estado de productos filtrados y loading
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Cargar productos al montar
+  // Cargar productos al montar el componente
   useEffect(() => {
     cargarProductos();
   }, []);
 
+  // Obtiene todos los productos desde el servicio
   const cargarProductos = async () => {
     try {
       setLoading(true);
@@ -29,33 +31,33 @@ export const ProductosPage = () => {
     }
   };
 
-  // Manejar cambios de filtros
+  // Maneja cambios de filtros (categoría, búsqueda, ordenamiento)
   const handleFilterChange = async (filtros: FilterState) => {
     try {
       setLoading(true);
       let productosResultado: Producto[] = [];
 
-      // Aplicar búsqueda si existe
+      // Aplicar búsqueda si existe texto
       if (filtros.busqueda.trim()) {
         const response = await buscarProductos(filtros.busqueda);
         if (response.success && response.data) {
           productosResultado = response.data;
         }
       } else if (filtros.categoria !== 'todos') {
-        // Filtrar por categoría
+        // Filtrar por categoría específica
         const response = await fetchProductosPorCategoria(filtros.categoria);
         if (response.success && response.data) {
           productosResultado = response.data;
         }
       } else {
-        // Obtener todos
+        // Obtener todos los productos
         const response = await fetchProductos();
         if (response.success && response.data) {
           productosResultado = response.data;
         }
       }
 
-      // Aplicar ordenamiento
+      // Aplicar ordenamiento según criterio seleccionado
       productosResultado = ordenarProductos(productosResultado, filtros.ordenar);
       
       setProductosFiltrados(productosResultado);
@@ -66,7 +68,7 @@ export const ProductosPage = () => {
     }
   };
 
-  // Función de ordenamiento
+  // Ordena productos según criterio (precio, nombre, recientes)
   const ordenarProductos = (
     productos: Producto[], 
     ordenar: FilterState['ordenar']
@@ -87,26 +89,38 @@ export const ProductosPage = () => {
   };
 
   return (
-    <div className="container py-5">
-      <div className="mb-4">
-        <h1 className="display-5 fw-bold mb-2">Nuestros Productos</h1>
+    // Contenedor principal de la página
+    <main className="container py-5">
+      {/* Encabezado de la página */}
+      <header className="mb-4">
+        <h1 className="display-5 fw-bold mb-2">
+          <i className="bi bi-grid-3x3-gap me-3"></i>
+          Nuestros Productos
+        </h1>
         <p className="text-muted">
           Descubre nuestra colección de calzado de alta calidad
         </p>
-      </div>
+      </header>
 
-      {/* Filtros */}
-      <ProductFilter onFilterChange={handleFilterChange} />
+      {/* Sección de filtros */}
+      <nav aria-label="Filtros de productos">
+        <ProductFilter onFilterChange={handleFilterChange} />
+      </nav>
 
-      {/* Lista de productos */}
-      <ProductList productos={productosFiltrados} loading={loading} />
+      {/* Sección de lista de productos */}
+      <section>
+        <ProductList productos={productosFiltrados} loading={loading} />
+      </section>
 
-      {/* Contador de resultados */}
+      {/* Footer: Contador de resultados */}
       {!loading && productosFiltrados.length > 0 && (
-        <div className="text-center mt-4 text-muted">
-          Mostrando {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
-        </div>
+        <footer className="text-center mt-4">
+          <p className="text-muted">
+            <i className="bi bi-check-circle me-2"></i>
+            Mostrando {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
+          </p>
+        </footer>
       )}
-    </div>
+    </main>
   );
 };

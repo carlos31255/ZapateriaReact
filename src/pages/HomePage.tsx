@@ -5,13 +5,16 @@ import { fetchProductos } from '../services/productService';
 import type { Producto } from '../types';
 
 export const HomePage = () => {
+  // Estado para productos destacados y carga
   const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Cargar productos al montar el componente
   useEffect(() => {
     cargarProductosDestacados();
   }, []);
 
+  // Obtiene productos destacados desde el servicio
   const cargarProductosDestacados = async () => {
     try {
       const response = await fetchProductos();
@@ -28,35 +31,54 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="container">
+    // Contenedor principal de la página
+    <main className="container">
+      {/* Sección Hero: Bienvenida y llamado a la acción */}
       <section className="hero text-center py-5">
-        <h1 className="display-4 mb-4">Encuentra el par perfecto</h1>
-        <p className="lead mb-4">
-          Descubre nuestra colección de zapatos de alta calidad para hombre y mujer.
-          Diseño, comodidad y estilo en un solo lugar.
-        </p>
+        <header className="mb-4">
+          <h1 className="display-4 fw-bold mb-3">
+            Encuentra el par perfecto
+          </h1>
+          <p className="lead text-muted">
+            Descubre nuestra colección de zapatos de alta calidad para hombre y mujer.
+            Diseño, comodidad y estilo en un solo lugar.
+          </p>
+        </header>
         <Link to="/productos" className="btn btn-primary btn-lg">
+          <i className="bi bi-bag me-2"></i>
           Ver Productos
         </Link>
       </section>
 
+      {/* Sección: Productos Destacados */}
       <section className="my-5">
-        <h2 className="text-center mb-4">Productos Destacados</h2>
+        <header className="text-center mb-4">
+          <h2 className="h3">
+            <i className="bi bi-star-fill me-2 text-warning"></i>
+            Productos Destacados
+          </h2>
+        </header>
+
+        {/* Estado: Cargando productos */}
         {loading ? (
           <div className="row">
-            <div className="col-12 text-center">
-              <div className="spinner-border text-primary" role="status">
+            <div className="col-12 text-center py-5">
+              <div className="spinner-border text-primary mb-3" role="status">
                 <span className="visually-hidden">Cargando...</span>
               </div>
+              <p className="text-muted">Cargando productos destacados...</p>
             </div>
           </div>
         ) : productosDestacados.length === 0 ? (
+          /* Estado: Sin productos destacados */
           <div className="row">
-            <div className="col-12 text-center">
+            <div className="col-12 text-center py-5">
+              <i className="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
               <p className="text-muted">No hay productos destacados disponibles.</p>
             </div>
           </div>
         ) : (
+          /* Grid de productos destacados */
           <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
             {productosDestacados.map((producto) => (
               <div key={producto.id} className="col">
@@ -66,12 +88,14 @@ export const HomePage = () => {
           </div>
         )}
         
-        <div className="text-center mt-4">
+        {/* Botón para ver todos los productos */}
+        <footer className="text-center mt-4">
           <Link to="/productos" className="btn btn-outline-primary">
+            <i className="bi bi-arrow-right-circle me-2"></i>
             Ver Todos los Productos
           </Link>
-        </div>
+        </footer>
       </section>
-    </div>
+    </main>
   );
 };

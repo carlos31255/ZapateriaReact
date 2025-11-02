@@ -15,18 +15,21 @@ export interface FilterState {
 }
 
 export const ProductFilter = ({ onFilterChange }: ProductFilterProps) => {
+  // Estado local de los filtros (categoria, busqueda, ordenar)
   const [filtros, setFiltros] = useState<FilterState>({
     categoria: 'todos',
     busqueda: '',
     ordenar: 'recientes'
   });
 
+  // Maneja el cambio de categoría y notifica al componente padre
   const handleCategoriaChange = (categoria: CategoriaProducto | 'todos') => {
     const nuevosFiltros = { ...filtros, categoria };
     setFiltros(nuevosFiltros);
     onFilterChange(nuevosFiltros);
   };
 
+  // Maneja el cambio en el campo de búsqueda en tiempo real
   const handleBusquedaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const busqueda = e.target.value;
     const nuevosFiltros = { ...filtros, busqueda };
@@ -34,6 +37,7 @@ export const ProductFilter = ({ onFilterChange }: ProductFilterProps) => {
     onFilterChange(nuevosFiltros);
   };
 
+  // Maneja el cambio en el criterio de ordenamiento (recientes, precio, nombre)
   const handleOrdenarChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const ordenar = e.target.value as FilterState['ordenar'];
     const nuevosFiltros = { ...filtros, ordenar };
@@ -41,6 +45,7 @@ export const ProductFilter = ({ onFilterChange }: ProductFilterProps) => {
     onFilterChange(nuevosFiltros);
   };
 
+  // Restablece todos los filtros a sus valores por defecto
   const limpiarFiltros = () => {
     const filtrosLimpios: FilterState = {
       categoria: 'todos',
