@@ -7,13 +7,11 @@ import type { RolUsuario } from '../types';
 interface RoleRouteProps {
   children: React.ReactNode;
   rolesPermitidos: RolUsuario[];
-  redirectTo?: string;
 }
 
 export const RoleRoute = ({ 
   children, 
-  rolesPermitidos, 
-  redirectTo = '/' 
+  rolesPermitidos
 }: RoleRouteProps) => {
   const { usuario, estaAutenticado, cargando } = useAuth();
 
@@ -36,9 +34,14 @@ export const RoleRoute = ({
   // Verificar si el usuario tiene el rol permitido
   const tieneRolPermitido = rolesPermitidos.includes(usuario.rol);
 
-  // Si no tiene el rol, redirigir
+  // Si no tiene el rol, redirigir según el tipo de usuario
   if (!tieneRolPermitido) {
-    return <Navigate to={redirectTo} replace />;
+    // Si es administrador intentando acceder a rutas de cliente, ir a /admin
+    if (usuario.rol === 'administrador') {
+      return <Navigate to="/admin" replace />;
+    }
+    // Si es cliente/vendedor intentando acceder a rutas de admin, ir a inicio
+    return <Navigate to="/" replace />;
   }
 
   // Si tiene el rol permitido, mostrar el contenido

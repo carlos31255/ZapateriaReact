@@ -9,9 +9,10 @@ import styles from './ProductCard.module.css';
 
 interface ProductCardProps {
   producto: Producto;
+  previewMode?: boolean;
 }
 
-export const ProductCard = ({ producto }: ProductCardProps) => {
+export const ProductCard = ({ producto, previewMode = false }: ProductCardProps) => {
   const { agregarProducto } = useCart();
   const [showModal, setShowModal] = useState(false);
 
@@ -77,11 +78,12 @@ export const ProductCard = ({ producto }: ProductCardProps) => {
             <button
               className={`btn btn-primary btn-sm ${styles.addButton}`}
               onClick={handleAgregarCarrito}
-              disabled={producto.stock === 0}
+              disabled={producto.stock === 0 || previewMode}
+              title={previewMode ? 'Función deshabilitada en modo vista previa' : ''}
             >
               {producto.stock > 0 ? (
                 <>
-                  <i className="bi bi-cart-plus"></i> Agregar
+                  <i className="bi bi-cart-plus"></i> {previewMode ? 'Ver más' : 'Agregar'}
                 </>
               ) : (
                 'Sin stock'
@@ -95,7 +97,8 @@ export const ProductCard = ({ producto }: ProductCardProps) => {
       {showModal && (
         <ProductModal 
           producto={producto} 
-          onClose={() => setShowModal(false)} 
+          onClose={() => setShowModal(false)}
+          previewMode={previewMode}
         />
       )}
     </>

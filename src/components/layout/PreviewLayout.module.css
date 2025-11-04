@@ -1,0 +1,114 @@
+/* Estilos del Layout de Vista Previa */
+
+.previewContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Banner de Vista Previa */
+.previewBanner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.exitButton {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.exitButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateX(-3px);
+}
+
+/* Navbar */
+.navbar {
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1rem 0;
+  position: sticky;
+  top: 45px;
+  z-index: 1020;
+}
+
+.navbar .nav-link {
+  color: #495057;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover {
+  color: #667eea;
+}
+
+.navbar .nav-link.active {
+  color: #667eea;
+}
+
+/* Contenido principal */
+.mainContent {
+  flex: 1;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/* Footer */
+.footer {
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 1.5rem 0;
+  margin-top: auto;
+}
+
+.footerContent {
+  text-align: center;
+}
+
+.footerText {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bannerContent {
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .exitButton {
+    font-size: 0.813rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .navbar {
+    top: 70px;
+  }
+}

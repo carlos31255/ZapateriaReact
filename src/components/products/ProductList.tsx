@@ -7,9 +7,10 @@ import styles from './ProductList.module.css';
 interface ProductListProps {
   productos: Producto[];
   loading?: boolean;
+  previewMode?: boolean;
 }
 
-export const ProductList = ({ productos, loading = false }: ProductListProps) => {
+export const ProductList = ({ productos, loading = false, previewMode = false }: ProductListProps) => {
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -34,7 +35,11 @@ export const ProductList = ({ productos, loading = false }: ProductListProps) =>
   return (
     <div className={styles.grid}>
       {productos.map((producto) => (
-        <ProductCard key={producto.id} producto={producto} />
+        <ProductCard 
+          key={producto.id} 
+          producto={producto} 
+          previewMode={previewMode}
+        />
       ))}
     </div>
   );

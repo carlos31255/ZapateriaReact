@@ -8,9 +8,10 @@ import styles from './ProductModal.module.css';
 interface ProductModalProps {
   producto: Producto;
   onClose: () => void;
+  previewMode?: boolean;
 }
 
-export const ProductModal = ({ producto, onClose }: ProductModalProps) => {
+export const ProductModal = ({ producto, onClose, previewMode = false }: ProductModalProps) => {
   const { agregarProducto } = useCart();
 
   const handleAgregarCarrito = async () => {
@@ -108,9 +109,15 @@ export const ProductModal = ({ producto, onClose }: ProductModalProps) => {
             <button
               className={`btn btn-primary btn-lg w-100 ${styles.addButton}`}
               onClick={handleAgregarCarrito}
-              disabled={producto.stock === 0}
+              disabled={producto.stock === 0 || previewMode}
+              title={previewMode ? 'Función deshabilitada en modo vista previa' : ''}
             >
-              {producto.stock > 0 ? (
+              {previewMode ? (
+                <>
+                  <i className="bi bi-eye me-2"></i>
+                  Modo Vista Previa - Compra Deshabilitada
+                </>
+              ) : producto.stock > 0 ? (
                 <>
                   <i className="bi bi-cart-plus me-2"></i>
                   Agregar al Carrito

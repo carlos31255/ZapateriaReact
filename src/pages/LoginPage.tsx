@@ -37,8 +37,16 @@ export const LoginPage = () => {
     setLoading(true);
 
     try {
-      await iniciarSesion(formData);
-      navigate('/');
+      const usuario = await iniciarSesion(formData);
+      
+      // Redirigir según el rol del usuario
+      if (usuario && usuario.rol === 'administrador') {
+        navigate('/admin');
+      } else if (usuario && usuario.rol === 'vendedor') {
+        navigate('/productos');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : 'Error al iniciar sesión');
     } finally {
@@ -215,7 +223,7 @@ export const LoginPage = () => {
                       </strong>
                     </p>
                     <p className="text-muted mb-0">
-                      <code>admin@duoc.cl</code> / <code>admin123</code>
+                      <code>admin@stepstyle.cl</code> / <code>admin123</code>
                     </p>
                   </div>
                   
@@ -228,7 +236,7 @@ export const LoginPage = () => {
                       </strong>
                     </p>
                     <p className="text-muted mb-0">
-                      <code>vendedor@duoc.cl</code> / <code>vendedor123</code>
+                      <code>vendedor@stepstyle.cl</code> / <code>vende123</code>
                     </p>
                   </div>
                   

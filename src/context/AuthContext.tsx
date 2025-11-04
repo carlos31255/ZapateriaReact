@@ -19,7 +19,7 @@ interface AuthContextType {
   estaAutenticado: boolean;
   cargando: boolean;
   error: string | null;
-  iniciarSesion: (credenciales: CredencialesLogin) => Promise<void>;
+  iniciarSesion: (credenciales: CredencialesLogin) => Promise<UsuarioAutenticado | null>;
   registrarUsuario: (datos: DatosRegistro) => Promise<void>;
   cerrarSesionUsuario: () => Promise<void>;
   limpiarError: () => void;
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   // Inicia sesión del usuario
-  const iniciarSesion = async (credenciales: CredencialesLogin): Promise<void> => {
+  const iniciarSesion = async (credenciales: CredencialesLogin): Promise<UsuarioAutenticado | null> => {
     try {
       setCargando(true);
       setError(null);
@@ -70,9 +70,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (respuesta.success && respuesta.usuario) {
         setUsuario(respuesta.usuario);
+        return respuesta.usuario;
+      } else {
+        // Si el login falló, lanzar error
+        const mensajeError = respuesta.error || 'Error al iniciar sesión';
+        setError(mensajeError);
+        throw new Error(mensajeError);
       }
     } catch (err: any) {
-      const mensajeError = err.error || 'Error al iniciar sesión';
+      const mensajeError = err.message || err.error || 'Error al iniciar sesión';
       setError(mensajeError);
       throw new Error(mensajeError);
     } finally {
