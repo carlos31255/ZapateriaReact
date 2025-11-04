@@ -1,0 +1,440 @@
+/* ============================================
+   HEADER / NAVBAR PRINCIPAL
+   ============================================ */
+
+.header {
+  background-color: var(--color-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+/* ============================================
+   CONTENEDOR DEL NAVBAR
+   ============================================ */
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  gap: 2rem;
+}
+
+/* ============================================
+   LOGO
+   ============================================ */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: transform var(--transition-fast);
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  color: var(--color-primary-dark);
+}
+
+.logo i {
+  font-size: 1.75rem;
+}
+
+/* ============================================
+   MENÚ DE NAVEGACIÓN
+   ============================================ */
+
+.navMenu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.navLink,
+.navLinkActive {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  color: var(--color-dark);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-weight: 500;
+  position: relative;
+}
+
+.navLink:hover {
+  background-color: var(--color-light);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.navLinkActive {
+  color: var(--color-primary);
+  background-color: rgba(230, 57, 70, 0.1);
+}
+
+.navLinkActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background-color: var(--color-primary);
+  border-radius: 2px;
+}
+
+.navLink i,
+.navLinkActive i {
+  font-size: 1.1rem;
+}
+
+/* ============================================
+   ACCIONES (Carrito y Usuario)
+   ============================================ */
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ============================================
+   BOTÓN DEL CARRITO
+   ============================================ */
+
+.cartButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: var(--color-light);
+  color: var(--color-dark);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.cartButton:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  transform: scale(1.1);
+  border-color: var(--color-primary-dark);
+}
+
+.cartButton i {
+  font-size: 1.5rem;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid var(--color-white);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ============================================
+   MENÚ DE USUARIO
+   ============================================ */
+
+.userMenu {
+  position: relative;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-light);
+  border: 2px solid transparent;
+  border-radius: 50px;
+  color: var(--color-dark);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.userButton:hover {
+  background-color: var(--color-white);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.userButton i:first-child {
+  font-size: 1.5rem;
+}
+
+.userButton i:last-child {
+  font-size: 0.875rem;
+  transition: transform var(--transition-fast);
+}
+
+.userMenu:hover .userButton i:last-child {
+  transform: rotate(180deg);
+}
+
+/* Dropdown del usuario */
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background-color: var(--color-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all var(--transition-normal);
+  z-index: 1001;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.userMenu:hover .userDropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  color: var(--color-dark);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.dropdownItem:first-child {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.dropdownItem:last-child {
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.dropdownItem:hover {
+  background-color: var(--color-light);
+  color: var(--color-primary);
+  padding-left: 1.5rem;
+}
+
+.dropdownItem i {
+  font-size: 1.1rem;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.1);
+  margin: 0.5rem 0;
+}
+
+/* ============================================
+   BOTONES DE AUTENTICACIÓN (No logeado)
+   ============================================ */
+
+.authButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.loginButton,
+.registerButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border: 2px solid;
+}
+
+.loginButton {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.loginButton:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.registerButton {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
+}
+
+.registerButton:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   BOTÓN MENÚ MÓVIL
+   ============================================ */
+
+.mobileMenuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-light);
+  border: 2px solid transparent;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mobileMenuButton:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary-dark);
+}
+
+.mobileMenuButton i {
+  font-size: 1.75rem;
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 992px) {
+  .navMenu {
+    display: none; /* Ocultar menú en tablet */
+  }
+
+  .navbar {
+    gap: 1rem;
+  }
+
+  .navLink span,
+  .navLinkActive span {
+    display: none; /* Solo mostrar iconos */
+  }
+
+  .authButtons span {
+    display: none; /* Solo mostrar iconos en botones */
+  }
+
+  .loginButton,
+  .registerButton {
+    padding: 0.625rem;
+    min-width: 45px;
+    justify-content: center;
+  }
+
+  .mobileMenuButton {
+    display: flex;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MÓVIL
+   ============================================ */
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 0;
+  }
+
+  .logo span {
+    font-size: 1.25rem;
+  }
+
+  .userButton span {
+    display: none; /* Ocultar nombre en móvil */
+  }
+
+  .userButton {
+    padding: 0.5rem;
+    min-width: 45px;
+    justify-content: center;
+  }
+
+  .cartButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .cartButton i {
+    font-size: 1.25rem;
+  }
+
+  .cartBadge {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo i {
+    font-size: 1.5rem;
+  }
+
+  .logo span {
+    font-size: 1.1rem;
+  }
+
+  .authButtons {
+    gap: 0.5rem;
+  }
+}

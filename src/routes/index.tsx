@@ -2,6 +2,7 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
+import { Layout } from '../components/layout/layout-components.index';
 
 // Páginas públicas
 import { HomePage } from '../pages/HomePage';
@@ -18,7 +19,8 @@ import { PerfilPage } from '../pages/PerfilPage';
 
 export const AppRoutes = () => {
   return (
-    <Routes>
+    <Layout>
+      <Routes>
       {/* ==================== RUTAS PÚBLICAS ==================== */}
       
       {/* Página principal */}
@@ -67,5 +69,6 @@ export const AppRoutes = () => {
       {/* Redirigir rutas no encontradas al inicio */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Layout>
   );
 };
