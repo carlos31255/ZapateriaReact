@@ -1,18 +1,7 @@
-// BASE DE DATOS SIMULADA (MOCK DATABASE)
+// BASE DE DATOS SIMULADA EN JAVASCRIPT
+// Simula una base de datos usando localStorage
 
-import type {
-  Usuario,
-  Producto,
-  ArticuloBlog,
-  DatosContacto,
-  Pedido,
-  Region,
-  CategoriaProducto,
-  CategoriaBlog,
-  EstadoPedido
-} from '../types';
-
-// CONSTANTES
+// ==================== CONSTANTES ====================
 
 const STORAGE_KEYS = {
   USUARIOS: 'usuarios',
@@ -22,11 +11,11 @@ const STORAGE_KEYS = {
   PEDIDOS: 'pedidos',
   USUARIO_ACTUAL: 'usuarioActual',
   CARRITO: 'carrito'
-} as const;
+};
 
-// DATOS INICIALES - PRODUCTOS
+// ==================== DATOS INICIALES - PRODUCTOS ====================
 
-export const productosIniciales: Producto[] = [
+export const productosIniciales = [
   {
     id: 1,
     nombre: "Zapatos Oxford Clásicos",
@@ -109,9 +98,9 @@ export const productosIniciales: Producto[] = [
   }
 ];
 
-// DATOS INICIALES - USUARIOS
+// ==================== DATOS INICIALES - USUARIOS ====================
 
-export const usuariosIniciales: Usuario[] = [
+export const usuariosIniciales = [
   {
     id: '1',
     run: '11111111-1',
@@ -147,9 +136,9 @@ export const usuariosIniciales: Usuario[] = [
   }
 ];
 
-// DATOS INICIALES - ARTÍCULOS BLOG
+// ==================== DATOS INICIALES - ARTÍCULOS BLOG ====================
 
-export const articulosBlogIniciales: ArticuloBlog[] = [
+export const articulosBlogIniciales = [
   {
     id: 1,
     titulo: "Tendencias Otoño 2025",
@@ -192,9 +181,9 @@ export const articulosBlogIniciales: ArticuloBlog[] = [
   }
 ];
 
-// REGIONES Y COMUNAS DE CHILE
+// ==================== REGIONES Y COMUNAS DE CHILE ====================
 
-export const regionesComunas: Region[] = [
+export const regionesComunas = [
   {
     value: "Metropolitana de Santiago",
     label: "Metropolitana de Santiago",
@@ -230,10 +219,12 @@ export const regionesComunas: Region[] = [
   }
 ];
 
-// FUNCIONES DE INICIALIZACIÓN
+// ==================== FUNCIONES DE INICIALIZACIÓN ====================
 
-// Inicializa el localStorage con datos por defecto si no existen
-export const inicializarDatos = (): void => {
+/**
+ * Inicializa el localStorage con datos por defecto si no existen
+ */
+export const inicializarDatos = () => {
   // Inicializar productos
   if (!localStorage.getItem(STORAGE_KEYS.PRODUCTOS)) {
     localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(productosIniciales));
@@ -264,51 +255,76 @@ export const inicializarDatos = (): void => {
   }
 };
 
-// Resetea todos los datos a su estado inicial
-export const resetearDatos = (): void => {
+/**
+ * Resetea todos los datos a su estado inicial
+ */
+export const resetearDatos = () => {
   localStorage.clear();
   inicializarDatos();
 };
 
-// FUNCIONES CRUD - PRODUCTOS
+// ==================== CRUD - PRODUCTOS ====================
 
-// Obtiene todos los productos
-export const obtenerProductos = (): Producto[] => {
+/**
+ * LEER: Obtiene todos los productos
+ * @returns {Array} Array de productos
+ */
+export const obtenerProductos = () => {
   const productos = localStorage.getItem(STORAGE_KEYS.PRODUCTOS);
   return productos ? JSON.parse(productos) : [];
 };
 
-// Obtiene un producto por su ID
-export const obtenerProductoPorId = (id: number): Producto | undefined => {
+/**
+ * LEER: Obtiene un producto por su ID
+ * @param {number} id - ID del producto
+ * @returns {Object|undefined} Producto encontrado o undefined
+ */
+export const obtenerProductoPorId = (id) => {
   const productos = obtenerProductos();
   return productos.find(p => p.id === id);
 };
 
-// Obtiene productos destacados
-export const obtenerProductosDestacados = (): Producto[] => {
+/**
+ * LEER: Obtiene productos destacados
+ * @returns {Array} Array de productos destacados con stock
+ */
+export const obtenerProductosDestacados = () => {
   const productos = obtenerProductos();
   return productos.filter(p => p.destacado && p.stock > 0);
 };
 
-// Filtra productos por categoría
-export const filtrarProductosPorCategoria = (categoria: CategoriaProducto | 'todos'): Producto[] => {
+/**
+ * LEER: Filtra productos por categoría
+ * @param {string} categoria - Categoría a filtrar ('todos', 'hombre', 'mujer', 'niños', 'deportivos')
+ * @returns {Array} Array de productos filtrados
+ */
+export const filtrarProductosPorCategoria = (categoria) => {
   const productos = obtenerProductos();
   if (categoria === 'todos') return productos;
   return productos.filter(p => p.categoria === categoria);
 };
 
-// Crea un nuevo producto
-export const crearProducto = (producto: Omit<Producto, 'id'>): Producto => {
+/**
+ * CREAR: Crea un nuevo producto
+ * @param {Object} producto - Datos del producto (sin id)
+ * @returns {Object} Producto creado con id asignado
+ */
+export const crearProducto = (producto) => {
   const productos = obtenerProductos();
   const nuevoId = Math.max(0, ...productos.map(p => p.id)) + 1;
-  const nuevoProducto: Producto = { ...producto, id: nuevoId };
+  const nuevoProducto = { ...producto, id: nuevoId };
   productos.push(nuevoProducto);
   localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(productos));
   return nuevoProducto;
 };
 
-// Actualiza un producto existente
-export const actualizarProducto = (id: number, datosActualizados: Partial<Producto>): boolean => {
+/**
+ * ACTUALIZAR: Actualiza un producto existente
+ * @param {number} id - ID del producto a actualizar
+ * @param {Object} datosActualizados - Datos a actualizar
+ * @returns {boolean} true si se actualizó, false si no existe
+ */
+export const actualizarProducto = (id, datosActualizados) => {
   const productos = obtenerProductos();
   const indice = productos.findIndex(p => p.id === id);
   
@@ -319,8 +335,12 @@ export const actualizarProducto = (id: number, datosActualizados: Partial<Produc
   return true;
 };
 
-// Elimina un producto
-export const eliminarProducto = (id: number): boolean => {
+/**
+ * ELIMINAR: Elimina un producto
+ * @param {number} id - ID del producto a eliminar
+ * @returns {boolean} true si se eliminó, false si no existe
+ */
+export const eliminarProducto = (id) => {
   const productos = obtenerProductos();
   const productosFiltrados = productos.filter(p => p.id !== id);
   
@@ -330,33 +350,54 @@ export const eliminarProducto = (id: number): boolean => {
   return true;
 };
 
-// Actualiza el stock de un producto
-export const actualizarStock = (id: number, cantidad: number): boolean => {
+/**
+ * ACTUALIZAR: Actualiza el stock de un producto
+ * @param {number} id - ID del producto
+ * @param {number} cantidad - Nueva cantidad de stock
+ * @returns {boolean} true si se actualizó, false si no existe
+ */
+export const actualizarStock = (id, cantidad) => {
   return actualizarProducto(id, { stock: cantidad });
 };
 
-// FUNCIONES CRUD - USUARIOS
+// ==================== CRUD - USUARIOS ====================
 
-// Obtiene todos los usuarios
-export const obtenerUsuarios = (): Usuario[] => {
+/**
+ * LEER: Obtiene todos los usuarios
+ * @returns {Array} Array de usuarios
+ */
+export const obtenerUsuarios = () => {
   const usuarios = localStorage.getItem(STORAGE_KEYS.USUARIOS);
   return usuarios ? JSON.parse(usuarios) : [];
 };
 
-// Obtiene un usuario por email
-export const obtenerUsuarioPorEmail = (email: string): Usuario | undefined => {
+/**
+ * LEER: Obtiene un usuario por email
+ * @param {string} email - Email del usuario
+ * @returns {Object|undefined} Usuario encontrado o undefined
+ */
+export const obtenerUsuarioPorEmail = (email) => {
   const usuarios = obtenerUsuarios();
   return usuarios.find(u => u.email.toLowerCase() === email.toLowerCase());
 };
 
-// Obtiene un usuario por ID
-export const obtenerUsuarioPorId = (id: string): Usuario | undefined => {
+/**
+ * LEER: Obtiene un usuario por ID
+ * @param {string} id - ID del usuario
+ * @returns {Object|undefined} Usuario encontrado o undefined
+ */
+export const obtenerUsuarioPorId = (id) => {
   const usuarios = obtenerUsuarios();
   return usuarios.find(u => u.id === id);
 };
 
-// Crea un nuevo usuario
-export const crearUsuario = (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Usuario => {
+/**
+ * CREAR: Crea un nuevo usuario
+ * @param {Object} usuario - Datos del usuario (sin id y fechaRegistro)
+ * @returns {Object} Usuario creado
+ * @throws {Error} Si el email ya está registrado
+ */
+export const crearUsuario = (usuario) => {
   const usuarios = obtenerUsuarios();
   
   // Verificar si el email ya existe
@@ -365,7 +406,7 @@ export const crearUsuario = (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Us
   }
 
   const nuevoId = (usuarios.length + 1).toString();
-  const nuevoUsuario: Usuario = {
+  const nuevoUsuario = {
     ...usuario,
     id: nuevoId,
     fechaRegistro: new Date().toISOString()
@@ -376,8 +417,13 @@ export const crearUsuario = (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Us
   return nuevoUsuario;
 };
 
-// Actualiza un usuario existente
-export const actualizarUsuario = (id: string, datosActualizados: Partial<Usuario>): boolean => {
+/**
+ * ACTUALIZAR: Actualiza un usuario existente
+ * @param {string} id - ID del usuario a actualizar
+ * @param {Object} datosActualizados - Datos a actualizar
+ * @returns {boolean} true si se actualizó, false si no existe
+ */
+export const actualizarUsuario = (id, datosActualizados) => {
   const usuarios = obtenerUsuarios();
   const indice = usuarios.findIndex(u => u.id === id);
   
@@ -388,8 +434,12 @@ export const actualizarUsuario = (id: string, datosActualizados: Partial<Usuario
   return true;
 };
 
-// Elimina un usuario
-export const eliminarUsuario = (id: string): boolean => {
+/**
+ * ELIMINAR: Elimina un usuario
+ * @param {string} id - ID del usuario a eliminar
+ * @returns {boolean} true si se eliminó, false si no existe
+ */
+export const eliminarUsuario = (id) => {
   const usuarios = obtenerUsuarios();
   const usuariosFiltrados = usuarios.filter(u => u.id !== id);
   
@@ -399,39 +449,103 @@ export const eliminarUsuario = (id: string): boolean => {
   return true;
 };
 
-// FUNCIONES CRUD - ARTÍCULOS BLOG
+// ==================== CRUD - ARTÍCULOS BLOG ====================
 
-// Obtiene todos los artículos del blog
-export const obtenerArticulosBlog = (): ArticuloBlog[] => {
+/**
+ * LEER: Obtiene todos los artículos del blog
+ * @returns {Array} Array de artículos
+ */
+export const obtenerArticulosBlog = () => {
   const articulos = localStorage.getItem(STORAGE_KEYS.ARTICULOS_BLOG);
   return articulos ? JSON.parse(articulos) : [];
 };
 
-// Obtiene un artículo por ID
-export const obtenerArticuloPorId = (id: number): ArticuloBlog | undefined => {
+/**
+ * LEER: Obtiene un artículo por ID
+ * @param {number} id - ID del artículo
+ * @returns {Object|undefined} Artículo encontrado o undefined
+ */
+export const obtenerArticuloPorId = (id) => {
   const articulos = obtenerArticulosBlog();
   return articulos.find(a => a.id === id);
 };
 
-// Filtra artículos por categoría
-export const filtrarArticulosPorCategoria = (categoria: CategoriaBlog | 'todos'): ArticuloBlog[] => {
+/**
+ * LEER: Filtra artículos por categoría
+ * @param {string} categoria - Categoría a filtrar
+ * @returns {Array} Array de artículos filtrados
+ */
+export const filtrarArticulosPorCategoria = (categoria) => {
   const articulos = obtenerArticulosBlog();
   if (categoria === 'todos') return articulos;
   return articulos.filter(a => a.categoria === categoria);
 };
 
-// FUNCIONES CRUD - CONTACTOS
+/**
+ * CREAR: Crea un nuevo artículo de blog
+ * @param {Object} articulo - Datos del artículo (sin id)
+ * @returns {Object} Artículo creado con id asignado
+ */
+export const crearArticuloBlog = (articulo) => {
+  const articulos = obtenerArticulosBlog();
+  const nuevoId = Math.max(0, ...articulos.map(a => a.id)) + 1;
+  const nuevoArticulo = { ...articulo, id: nuevoId };
+  articulos.push(nuevoArticulo);
+  localStorage.setItem(STORAGE_KEYS.ARTICULOS_BLOG, JSON.stringify(articulos));
+  return nuevoArticulo;
+};
 
-// Obtiene todos los contactos
-export const obtenerContactos = (): DatosContacto[] => {
+/**
+ * ACTUALIZAR: Actualiza un artículo existente
+ * @param {number} id - ID del artículo a actualizar
+ * @param {Object} datosActualizados - Datos a actualizar
+ * @returns {boolean} true si se actualizó, false si no existe
+ */
+export const actualizarArticuloBlog = (id, datosActualizados) => {
+  const articulos = obtenerArticulosBlog();
+  const indice = articulos.findIndex(a => a.id === id);
+  
+  if (indice === -1) return false;
+  
+  articulos[indice] = { ...articulos[indice], ...datosActualizados };
+  localStorage.setItem(STORAGE_KEYS.ARTICULOS_BLOG, JSON.stringify(articulos));
+  return true;
+};
+
+/**
+ * ELIMINAR: Elimina un artículo
+ * @param {number} id - ID del artículo a eliminar
+ * @returns {boolean} true si se eliminó, false si no existe
+ */
+export const eliminarArticuloBlog = (id) => {
+  const articulos = obtenerArticulosBlog();
+  const articulosFiltrados = articulos.filter(a => a.id !== id);
+  
+  if (articulos.length === articulosFiltrados.length) return false;
+  
+  localStorage.setItem(STORAGE_KEYS.ARTICULOS_BLOG, JSON.stringify(articulosFiltrados));
+  return true;
+};
+
+// ==================== CRUD - CONTACTOS ====================
+
+/**
+ * LEER: Obtiene todos los contactos
+ * @returns {Array} Array de mensajes de contacto
+ */
+export const obtenerContactos = () => {
   const contactos = localStorage.getItem(STORAGE_KEYS.CONTACTOS);
   return contactos ? JSON.parse(contactos) : [];
 };
 
-// Guarda un nuevo mensaje de contacto
-export const guardarContacto = (contacto: Omit<DatosContacto, 'fecha'>): DatosContacto => {
+/**
+ * CREAR: Guarda un nuevo mensaje de contacto
+ * @param {Object} contacto - Datos del contacto (sin fecha)
+ * @returns {Object} Contacto creado con fecha asignada
+ */
+export const guardarContacto = (contacto) => {
   const contactos = obtenerContactos();
-  const nuevoContacto: DatosContacto = {
+  const nuevoContacto = {
     ...contacto,
     fecha: new Date().toISOString()
   };
@@ -440,25 +554,61 @@ export const guardarContacto = (contacto: Omit<DatosContacto, 'fecha'>): DatosCo
   return nuevoContacto;
 };
 
-// FUNCIONES CRUD - PEDIDOS
+/**
+ * ELIMINAR: Elimina un mensaje de contacto por índice
+ * @param {number} indice - Índice del contacto a eliminar
+ * @returns {boolean} true si se eliminó, false si no existe
+ */
+export const eliminarContacto = (indice) => {
+  const contactos = obtenerContactos();
+  
+  if (indice < 0 || indice >= contactos.length) return false;
+  
+  contactos.splice(indice, 1);
+  localStorage.setItem(STORAGE_KEYS.CONTACTOS, JSON.stringify(contactos));
+  return true;
+};
 
-// Obtiene todos los pedidos
-export const obtenerPedidos = (): Pedido[] => {
+// ==================== CRUD - PEDIDOS ====================
+
+/**
+ * LEER: Obtiene todos los pedidos
+ * @returns {Array} Array de pedidos
+ */
+export const obtenerPedidos = () => {
   const pedidos = localStorage.getItem(STORAGE_KEYS.PEDIDOS);
   return pedidos ? JSON.parse(pedidos) : [];
 };
 
-// Obtiene pedidos de un usuario específico
-export const obtenerPedidosPorUsuario = (usuarioId: string): Pedido[] => {
+/**
+ * LEER: Obtiene pedidos de un usuario específico
+ * @param {string} usuarioId - ID del usuario
+ * @returns {Array} Array de pedidos del usuario
+ */
+export const obtenerPedidosPorUsuario = (usuarioId) => {
   const pedidos = obtenerPedidos();
   return pedidos.filter(p => p.usuarioId === usuarioId);
 };
 
-// Crea un nuevo pedido
-export const crearPedido = (pedido: Omit<Pedido, 'id' | 'fecha'>): Pedido => {
+/**
+ * LEER: Obtiene un pedido por ID
+ * @param {string} id - ID del pedido
+ * @returns {Object|undefined} Pedido encontrado o undefined
+ */
+export const obtenerPedidoPorId = (id) => {
+  const pedidos = obtenerPedidos();
+  return pedidos.find(p => p.id === id);
+};
+
+/**
+ * CREAR: Crea un nuevo pedido
+ * @param {Object} pedido - Datos del pedido (sin id y fecha)
+ * @returns {Object} Pedido creado con id y fecha asignados
+ */
+export const crearPedido = (pedido) => {
   const pedidos = obtenerPedidos();
   const nuevoId = `PED-${Date.now()}`;
-  const nuevoPedido: Pedido = {
+  const nuevoPedido = {
     ...pedido,
     id: nuevoId,
     fecha: new Date().toISOString()
@@ -468,8 +618,13 @@ export const crearPedido = (pedido: Omit<Pedido, 'id' | 'fecha'>): Pedido => {
   return nuevoPedido;
 };
 
-// Actualiza el estado de un pedido
-export const actualizarEstadoPedido = (id: string, estado: EstadoPedido): boolean => {
+/**
+ * ACTUALIZAR: Actualiza el estado de un pedido
+ * @param {string} id - ID del pedido
+ * @param {string} estado - Nuevo estado ('pendiente', 'procesando', 'enviado', 'entregado', 'cancelado')
+ * @returns {boolean} true si se actualizó, false si no existe
+ */
+export const actualizarEstadoPedido = (id, estado) => {
   const pedidos = obtenerPedidos();
   const indice = pedidos.findIndex(p => p.id === id);
   
@@ -480,12 +635,50 @@ export const actualizarEstadoPedido = (id: string, estado: EstadoPedido): boolea
   return true;
 };
 
-// FUNCIONES DE UTILIDAD
+/**
+ * ACTUALIZAR: Actualiza un pedido completo
+ * @param {string} id - ID del pedido a actualizar
+ * @param {Object} datosActualizados - Datos a actualizar
+ * @returns {boolean} true si se actualizó, false si no existe
+ */
+export const actualizarPedido = (id, datosActualizados) => {
+  const pedidos = obtenerPedidos();
+  const indice = pedidos.findIndex(p => p.id === id);
+  
+  if (indice === -1) return false;
+  
+  pedidos[indice] = { ...pedidos[indice], ...datosActualizados };
+  localStorage.setItem(STORAGE_KEYS.PEDIDOS, JSON.stringify(pedidos));
+  return true;
+};
 
-// Obtiene las claves de almacenamiento
+/**
+ * ELIMINAR: Elimina un pedido
+ * @param {string} id - ID del pedido a eliminar
+ * @returns {boolean} true si se eliminó, false si no existe
+ */
+export const eliminarPedido = (id) => {
+  const pedidos = obtenerPedidos();
+  const pedidosFiltrados = pedidos.filter(p => p.id !== id);
+  
+  if (pedidos.length === pedidosFiltrados.length) return false;
+  
+  localStorage.setItem(STORAGE_KEYS.PEDIDOS, JSON.stringify(pedidos));
+  return true;
+};
+
+// ==================== FUNCIONES DE UTILIDAD ====================
+
+/**
+ * Obtiene las claves de almacenamiento
+ * @returns {Object} Objeto con las claves de localStorage
+ */
 export const getStorageKeys = () => STORAGE_KEYS;
 
-// Exporta todos los datos del sistema
+/**
+ * Exporta todos los datos del sistema
+ * @returns {Object} Objeto con todos los datos
+ */
 export const exportarDatos = () => {
   return {
     productos: obtenerProductos(),
@@ -493,5 +686,43 @@ export const exportarDatos = () => {
     articulos: obtenerArticulosBlog(),
     contactos: obtenerContactos(),
     pedidos: obtenerPedidos()
+  };
+};
+
+/**
+ * Importa datos al sistema (sobrescribe datos existentes)
+ * @param {Object} datos - Objeto con los datos a importar
+ */
+export const importarDatos = (datos) => {
+  if (datos.productos) {
+    localStorage.setItem(STORAGE_KEYS.PRODUCTOS, JSON.stringify(datos.productos));
+  }
+  if (datos.usuarios) {
+    localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(datos.usuarios));
+  }
+  if (datos.articulos) {
+    localStorage.setItem(STORAGE_KEYS.ARTICULOS_BLOG, JSON.stringify(datos.articulos));
+  }
+  if (datos.contactos) {
+    localStorage.setItem(STORAGE_KEYS.CONTACTOS, JSON.stringify(datos.contactos));
+  }
+  if (datos.pedidos) {
+    localStorage.setItem(STORAGE_KEYS.PEDIDOS, JSON.stringify(datos.pedidos));
+  }
+};
+
+/**
+ * Obtiene estadísticas del sistema
+ * @returns {Object} Objeto con estadísticas
+ */
+export const obtenerEstadisticas = () => {
+  return {
+    totalProductos: obtenerProductos().length,
+    totalUsuarios: obtenerUsuarios().length,
+    totalArticulos: obtenerArticulosBlog().length,
+    totalContactos: obtenerContactos().length,
+    totalPedidos: obtenerPedidos().length,
+    productosDestacados: obtenerProductosDestacados().length,
+    productosSinStock: obtenerProductos().filter(p => p.stock === 0).length
   };
 };

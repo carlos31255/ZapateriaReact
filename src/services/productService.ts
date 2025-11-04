@@ -10,7 +10,7 @@ import {
   actualizarProducto,
   eliminarProducto,
   actualizarStock
-} from '../data/database';
+} from '../data/database.js';
 
 // Simula un delay de red para hacer más realista la experiencia
 const simularDelay = (ms: number = 500): Promise<void> => {

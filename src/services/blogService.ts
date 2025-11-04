@@ -7,7 +7,7 @@ import {
   filtrarArticulosPorCategoria,
   guardarContacto,
   obtenerContactos
-} from '../data/database';
+} from '../data/database.js';
 
 // Simula un delay de red
 const simularDelay = (ms: number = 500): Promise<void> => {

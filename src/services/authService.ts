@@ -8,7 +8,7 @@ import {
   getStorageKeys,
   obtenerUsuarioPorId as getUsuarioById,
   actualizarUsuario as updateUsuario
-} from '../data/database';
+} from '../data/database.js';
 
 const STORAGE_KEYS = getStorageKeys();
 
