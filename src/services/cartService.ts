@@ -3,8 +3,8 @@
 import axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import type { ProductoCarrito, Carrito, ApiResponse } from '../types';
-import { obtenerProductoPorId } from '../data/database.js';
-import { getStorageKeys } from '../data/database.js';
+import { obtenerProductoPorId } from '../data/database';
+import { getStorageKeys } from '../data/database';
 
 const STORAGE_KEYS = getStorageKeys();
 
