@@ -62,12 +62,6 @@ export const NosotrosPage = () => {
                   Desde nuestros inicios en <strong>2020</strong>, nos hemos dedicado a ofrecer los mejores productos
                   del mercado, combinando <strong>estilo</strong>, <strong>comodidad</strong> y <strong>durabilidad</strong>.
                 </p>
-                <div className="text-center mt-3">
-                  <small className="text-primary fw-semibold">
-                    <i className="bi bi-hand-index me-1"></i>
-                    Click para conocer más detalles
-                  </small>
-                </div>
               </div>
 
               {/* Columna de imagen representativa */}
@@ -117,10 +111,6 @@ export const NosotrosPage = () => {
                 <p className="card-text text-muted mb-3">
                   Proporcionar calzado de alta calidad que combine estilo, comodidad y durabilidad...
                 </p>
-                <small className="text-primary fw-semibold">
-                  <i className="bi bi-hand-index me-1"></i>
-                  Click para ver más
-                </small>
               </div>
             </article>
           </div>
@@ -150,10 +140,6 @@ export const NosotrosPage = () => {
                 <p className="card-text text-muted mb-3">
                   Ser la tienda de calzado preferida a nivel nacional, reconocida por nuestra excelencia...
                 </p>
-                <small className="text-primary fw-semibold">
-                  <i className="bi bi-hand-index me-1"></i>
-                  Click para ver más
-                </small>
               </div>
             </article>
           </div>
@@ -208,13 +194,141 @@ export const NosotrosPage = () => {
                   Plataforma moderna construida con las últimas tecnologías web para 
                   brindarte la mejor experiencia de compra online.
                 </p>
-
-                <small className="text-primary fw-semibold">
-                  <i className="bi bi-hand-index me-1"></i>
-                  Click para conocer el stack tecnológico
-                </small>
               </div>
             </article>
+          </div>
+
+          {/* Nueva sección: Desarrolladores */}
+          <div className="col-12">
+            <h3 className="h5 text-center mb-4">
+              <i className="bi bi-people me-2 text-primary"></i>
+              Nuestro Equipo de Desarrollo
+            </h3>
+            <div className="row justify-content-center g-4">
+              {/* Desarrollador 1: Brayan Gallardo */}
+              <div className="col-md-4 col-sm-6">
+                <a 
+                  href="https://github.com/BrayanGallardo19" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-decoration-none"
+                >
+                  <div 
+                    className="card shadow-sm border-0 h-100"
+                    style={{ 
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
+                      e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '';
+                    }}
+                  >
+                    <div className="card-body text-center p-4">
+                      <div 
+                        className="mb-3 position-relative d-inline-block"
+                        style={{
+                          width: '100px',
+                          height: '100px'
+                        }}
+                      >
+                        <img 
+                          src="https://github.com/BrayanGallardo19.png" 
+                          alt="Brayan Gallardo"
+                          className="rounded-circle shadow"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            border: '3px solid var(--color-primary)'
+                          }}
+                        />
+                        <div 
+                          className="position-absolute bottom-0 end-0 bg-success rounded-circle"
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            border: '2px solid white'
+                          }}
+                        ></div>
+                      </div>
+                      <h4 className="h6 mb-1 text-dark">Brayan Gallardo</h4>
+                      <p className="text-muted small mb-2">Full Stack Developer</p>
+                      <p className="text-muted small mb-0">
+                        <i className="bi bi-github me-1"></i>
+                        @BrayanGallardo19
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              {/* Desarrollador 2: Carlos Hidalgo */}
+              <div className="col-md-4 col-sm-6">
+                <a 
+                  href="https://github.com/carlos31255" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-decoration-none"
+                >
+                  <div 
+                    className="card shadow-sm border-0 h-100"
+                    style={{ 
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
+                      e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,0,0,0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '';
+                    }}
+                  >
+                    <div className="card-body text-center p-4">
+                      <div 
+                        className="mb-3 position-relative d-inline-block"
+                        style={{
+                          width: '100px',
+                          height: '100px'
+                        }}
+                      >
+                        <img 
+                          src="https://github.com/carlos31255.png" 
+                          alt="Carlos Hidalgo"
+                          className="rounded-circle shadow"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            border: '3px solid var(--color-primary)'
+                          }}
+                        />
+                        <div 
+                          className="position-absolute bottom-0 end-0 bg-success rounded-circle"
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            border: '2px solid white'
+                          }}
+                        ></div>
+                      </div>
+                      <h4 className="h6 mb-1 text-dark">Carlos Hidalgo</h4>
+                      <p className="text-muted small mb-2">Full Stack Developer</p>
+                      <p className="text-muted small mb-0">
+                        <i className="bi bi-github me-1"></i>
+                        @carlos31255
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Nueva sección: Valores del equipo */}
