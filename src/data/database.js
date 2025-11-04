@@ -141,43 +141,123 @@ export const usuariosIniciales = [
 export const articulosBlogIniciales = [
   {
     id: 1,
-    titulo: "Tendencias Otoño 2025",
-    resumen: "Los estilos que marcarán esta temporada.",
+    titulo: "Tendencias de Zapatos Oxford para 2025",
+    resumen: "Los clásicos Oxford reinventan la elegancia masculina.",
     categoria: "tendencias",
-    fecha: "2025-09-20",
-    imagen: "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600",
-    contenido: "Este otoño trae botines con texturas, colores tierra y materiales sustentables que están dominando las tendencias de calzado.",
-    autor: "María González"
-  },
-  {
-    id: 2,
-    titulo: "Cuidar Zapatos de Cuero",
-    resumen: "Mantén tus zapatos como nuevos.",
-    categoria: "cuidado",
-    fecha: "2025-09-18",
+    fecha: "2025-10-28",
     imagen: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600",
-    contenido: "El cuero requiere cuidados específicos. Limpia, nutre y protege tus zapatos regularmente para que duren años.",
+    contenido: "Los zapatos Oxford son un clásico atemporal que nunca pasa de moda. Este 2025, los vemos reinventados con cueros de primera calidad, suelas más cómodas y diseños que combinan lo formal con lo casual. Son perfectos para la oficina, eventos importantes o simplemente para verte bien en cualquier ocasión. El secreto está en elegir un par de calidad que dure años.",
     autor: "Carlos Rodríguez"
   },
   {
-    id: 3,
-    titulo: "5 Zapatos Esenciales",
-    resumen: "Los básicos que no pueden faltar.",
+    id: 2,
+    titulo: "Cómo Elegir los Tacones Perfectos",
+    resumen: "Guía completa para encontrar tacones elegantes y cómodos.",
     categoria: "consejos",
-    fecha: "2025-09-15",
+    fecha: "2025-10-25",
+    imagen: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600",
+    contenido: "Elegir tacones no solo se trata de estilo, sino también de comodidad y salud. La altura ideal del tacón depende de tu experiencia y la ocasión. Para eventos especiales, un tacón de 7-9 cm es perfecto. Busca materiales de calidad que se adapten a tu pie, plantillas acolchadas y una base estable. Recuerda que unos tacones bien elegidos pueden transformar completamente tu outfit.",
+    autor: "María González"
+  },
+  {
+    id: 3,
+    titulo: "Zapatillas Deportivas: Running vs Training",
+    resumen: "Conoce la diferencia y elige las zapatillas correctas.",
+    categoria: "consejos",
+    fecha: "2025-10-22",
     imagen: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-    contenido: "Sneakers blancos, zapatos oxford, botines versátiles, sandalias cómodas y zapatos deportivos. Estos cinco tipos cubren todas las ocasiones.",
-    autor: "Ana Martínez"
+    contenido: "No todas las zapatillas deportivas son iguales. Las de running están diseñadas para movimientos hacia adelante, con amortiguación en el talón. Las de training tienen soporte lateral para movimientos multidireccionales. Si corres regularmente, invierte en unas buenas zapatillas de running con la amortiguación adecuada para tu pisada. Tu cuerpo te lo agradecerá.",
+    autor: "Diego Fernández"
   },
   {
     id: 4,
-    titulo: "Combinar con Estilo",
-    resumen: "Aprende las reglas básicas del matching.",
+    titulo: "Cuidados Esenciales para Botas de Cuero",
+    resumen: "Mantén tus botas impecables temporada tras temporada.",
+    categoria: "cuidado",
+    fecha: "2025-10-20",
+    imagen: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400",
+    contenido: "Las botas de cuero son una inversión que puede durar décadas con el cuidado apropiado. Limpia el polvo después de cada uso con un paño suave. Aplica crema nutritiva cada 2-3 semanas para mantener el cuero flexible. Usa hormas cuando no las uses para mantener su forma. Impermeabiliza antes de la temporada de lluvia. Con estos cuidados simples, tus botas te acompañarán por años.",
+    autor: "Ana Martínez"
+  },
+  {
+    id: 5,
+    titulo: "Sandalias de Verano: Estilo y Comodidad",
+    resumen: "Las mejores sandalias para disfrutar el calor con estilo.",
     categoria: "estilo",
-    fecha: "2025-09-12",
-    imagen: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600",
-    contenido: "La combinación correcta de zapatos puede transformar cualquier outfit. Conoce las reglas fundamentales y cuándo romperlas.",
+    fecha: "2025-10-18",
+    imagen: "https://images.unsplash.com/photo-1603808033176-e2f2d3a00645?w=400",
+    contenido: "Las sandalias son el calzado estrella del verano. Este año destacan las sandalias minimalistas con tiras delgadas, las plataformas cómodas y los diseños con detalles artesanales. Busca materiales que respiren como el cuero o la lona, suelas con buen agarre y ajustes que se adapten a tu pie. Las sandalias correctas te permiten caminar todo el día sin sacrificar el estilo.",
+    autor: "Sofía Vargas"
+  },
+  {
+    id: 6,
+    titulo: "Zapatos Escolares: Guía para Padres",
+    resumen: "Cómo elegir el calzado escolar perfecto para tus hijos.",
+    categoria: "consejos",
+    fecha: "2025-10-15",
+    imagen: "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400",
+    contenido: "Los zapatos escolares deben ser resistentes, cómodos y permitir el correcto desarrollo del pie. Busca materiales transpirables, suelas antideslizantes y suficiente espacio en la punta (aproximadamente 1 cm). Los niños crecen rápido, así que revisa el calce cada 3-4 meses. Involucra a tus hijos en la elección para asegurar que les gusten y los usen con gusto. La comodidad es clave para su concentración en clase.",
+    autor: "Patricia López"
+  },
+  {
+    id: 7,
+    titulo: "Zapatillas Casuales: El Must-Have Versátil",
+    resumen: "Las zapatillas casuales que van con todo tu guardarropa.",
+    categoria: "estilo",
+    fecha: "2025-10-12",
+    imagen: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400",
+    contenido: "Las zapatillas casuales son el calzado más versátil de tu closet. Combinan con jeans, vestidos, shorts y hasta outfits semi-formales. Las clásicas blancas son imprescindibles, pero no tengas miedo de experimentar con colores y texturas. Busca diseños minimalistas que no pasen de moda y materiales de calidad. Un par de buenas zapatillas casuales puede llevarte del café matutino a una cena informal sin cambiar de zapatos.",
     autor: "Luis Torres"
+  },
+  {
+    id: 8,
+    titulo: "Zapatos de Vestir para Eventos Especiales",
+    resumen: "La elegancia en cada paso: guía de zapatos formales.",
+    categoria: "estilo",
+    fecha: "2025-10-10",
+    imagen: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400",
+    contenido: "Un par de zapatos de vestir de calidad es esencial para bodas, graduaciones y eventos importantes. Los Oxford y Derby son las opciones más versátiles en negro o café. El cuero genuino se adapta a tu pie y envejece elegantemente. Asegúrate de que estén bien pulidos y en perfectas condiciones. Un buen truco: usa los nuevos en casa un par de días antes del evento para ablandarlos. La comodidad y la elegancia pueden ir de la mano.",
+    autor: "Roberto Silva"
+  },
+  {
+    id: 9,
+    titulo: "Materiales Sustentables en Calzado",
+    resumen: "La nueva era del calzado ecológico y responsable.",
+    categoria: "tendencias",
+    fecha: "2025-10-08",
+    imagen: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600",
+    contenido: "La industria del calzado está evolucionando hacia la sostenibilidad. Cueros curtidos con procesos ecológicos, materiales reciclados, suelas biodegradables y producción ética son las nuevas tendencias. Cada vez más marcas apuestan por reducir su huella de carbono sin sacrificar calidad o estilo. Elegir calzado sustentable no solo beneficia al planeta, sino que también apoya prácticas laborales justas. El futuro de la moda es consciente.",
+    autor: "Elena Morales"
+  },
+  {
+    id: 10,
+    titulo: "Cómo Limpiar Zapatillas Blancas",
+    resumen: "Trucos caseros para mantener tus zapatillas impecables.",
+    categoria: "cuidado",
+    fecha: "2025-10-05",
+    imagen: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600",
+    contenido: "Las zapatillas blancas son hermosas pero difíciles de mantener. Para limpiarlas: retira los cordones y lava aparte, usa una mezcla de bicarbonato y agua para manchas difíciles, cepilla suavemente con un cepillo de dientes viejo, limpia las suelas con jabón y un cepillo duro. Para secar, rellena con papel y deja al aire (nunca al sol directo). Limpia después de cada 3-4 usos para evitar que la suciedad se fije. ¡Parecerán nuevas por mucho tiempo!",
+    autor: "Carmen Ruiz"
+  },
+  {
+    id: 11,
+    titulo: "La Importancia del Calce Correcto",
+    resumen: "Por qué usar la talla correcta cambia todo.",
+    categoria: "consejos",
+    fecha: "2025-10-02",
+    imagen: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600",
+    contenido: "Usar la talla incorrecta puede causar ampollas, dolor de espalda y problemas a largo plazo. El pie cambia de tamaño durante el día (es más grande por la tarde), así que prueba zapatos en ese horario. Debe haber espacio de un dedo entre tu dedo más largo y la punta del zapato. El talón no debe salirse al caminar. Si dudas entre dos tallas, elige la mayor. Recuerda que cada marca calza diferente, así que siempre prueba antes de comprar.",
+    autor: "Dr. Andrés Campos"
+  },
+  {
+    id: 12,
+    titulo: "Tendencia: Botas Chunky para el Invierno",
+    resumen: "Las botas gruesas que dominan el street style.",
+    categoria: "tendencias",
+    fecha: "2025-09-30",
+    imagen: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600",
+    contenido: "Las botas chunky o de plataforma gruesa son la tendencia del momento. Combinan actitud, comodidad y un toque retro-futurista. Son perfectas para enfrentar el invierno con estilo, dándole un giro moderno a cualquier outfit. Combínalas con vestidos, jeans o leggings. La clave está en balancear la proporción: si las botas son voluminosas, mantén el resto del outfit más ajustado. Atrévete a experimentar con este look audaz.",
+    autor: "Valentina Castro"
   }
 ];
 
