@@ -1,11 +1,12 @@
 // Para buscar y filtrar productos
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { CategoriaProducto } from '../../types';
 import styles from './ProductFilter.module.css';
 
 interface ProductFilterProps {
   onFilterChange: (filtros: FilterState) => void;
+  categoriaInicial?: CategoriaProducto | 'todos';
 }
 
 export interface FilterState {
@@ -14,13 +15,20 @@ export interface FilterState {
   ordenar: 'recientes' | 'precio-asc' | 'precio-desc' | 'nombre';
 }
 
-export const ProductFilter = ({ onFilterChange }: ProductFilterProps) => {
+export const ProductFilter = ({ onFilterChange, categoriaInicial = 'todos' }: ProductFilterProps) => {
   // Estado local de los filtros (categoria, busqueda, ordenar)
   const [filtros, setFiltros] = useState<FilterState>({
-    categoria: 'todos',
+    categoria: categoriaInicial,
     busqueda: '',
     ordenar: 'recientes'
   });
+
+  // Actualiza la categoría cuando cambia desde afuera (URL)
+  useEffect(() => {
+    if (categoriaInicial !== filtros.categoria) {
+      setFiltros(prev => ({ ...prev, categoria: categoriaInicial }));
+    }
+  }, [categoriaInicial]);
 
   // Maneja el cambio de categoría y notifica al componente padre
   const handleCategoriaChange = (categoria: CategoriaProducto | 'todos') => {

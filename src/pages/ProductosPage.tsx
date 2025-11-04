@@ -1,26 +1,51 @@
 // Página de productos con filtros y lista de productos
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ProductList, ProductFilter } from '../components/products/products-components.index';
 import { fetchProductos, fetchProductosPorCategoria, buscarProductos } from '../services/productService';
 import type { FilterState }  from '../components/products/products-components.index';
-import type { Producto } from '../types';
+import type { Producto, CategoriaProducto } from '../types';
 
 export const ProductosPage = () => {
   // Estado de productos filtrados y loading
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [categoriaActual, setCategoriaActual] = useState<CategoriaProducto | 'todos'>('todos');
 
-  // Cargar productos al montar el componente
+  // Cargar productos al montar el componente o cuando cambie la URL
   useEffect(() => {
-    cargarProductos();
-  }, []);
+    const categoria = searchParams.get('categoria');
+    if (categoria && categoria !== 'todos') {
+      setCategoriaActual(categoria as CategoriaProducto);
+      cargarProductosPorCategoria(categoria);
+    } else {
+      setCategoriaActual('todos');
+      cargarProductos();
+    }
+  }, [searchParams]);
 
   // Obtiene todos los productos desde el servicio
   const cargarProductos = async () => {
     try {
       setLoading(true);
       const response = await fetchProductos();
+      if (response.success && response.data) {
+        setProductosFiltrados(response.data);
+      }
+    } catch (error) {
+      console.error('Error al cargar productos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carga productos por categoría desde la URL
+  const cargarProductosPorCategoria = async (categoria: string) => {
+    try {
+      setLoading(true);
+      const response = await fetchProductosPorCategoria(categoria as CategoriaProducto);
       if (response.success && response.data) {
         setProductosFiltrados(response.data);
       }
@@ -104,7 +129,10 @@ export const ProductosPage = () => {
 
       {/* Sección de filtros */}
       <nav aria-label="Filtros de productos">
-        <ProductFilter onFilterChange={handleFilterChange} />
+        <ProductFilter 
+          onFilterChange={handleFilterChange} 
+          categoriaInicial={categoriaActual}
+        />
       </nav>
 
       {/* Sección de lista de productos */}

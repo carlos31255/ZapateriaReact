@@ -1,0 +1,299 @@
+/* Estilos del Footer */
+
+.footer {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #e0e0e0;
+  padding: 4rem 0 0 0;
+  margin-top: auto;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Contenido principal del footer */
+.content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+/* Columnas */
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.brandName {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.description {
+  color: #b0b0b0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Títulos de columna */
+.columnTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.columnTitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: var(--color-primary, #0d6efd);
+  border-radius: 2px;
+}
+
+/* Enlaces de navegación */
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.link {
+  color: #b0b0b0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  padding: 0.25rem 0;
+}
+
+.link:hover {
+  color: white;
+  padding-left: 0.5rem;
+  transform: translateX(4px);
+}
+
+.link i {
+  transition: transform 0.3s ease;
+}
+
+.link:hover i {
+  transform: scale(1.2);
+}
+
+/* Información de contacto */
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contactItem {
+  display: flex;
+  align-items: flex-start;
+  color: #b0b0b0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.contactItem i {
+  color: var(--color-primary, #0d6efd);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.contactLink {
+  color: #b0b0b0;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contactLink:hover {
+  color: var(--color-primary, #0d6efd);
+  text-decoration: underline;
+}
+
+/* Separador */
+.divider {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 0 2rem 0;
+}
+
+/* Bottom bar */
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  background: rgba(0, 0, 0, 0.2);
+  margin: 0 -15px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.copyright {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.copyright p {
+  margin: 0;
+}
+
+.copyright strong {
+  color: white;
+  font-weight: 600;
+}
+
+/* Desarrolladores */
+.developers {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.developedBy {
+  color: #888;
+}
+
+.devLink {
+  color: #b0b0b0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.devLink:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.separator {
+  color: #555;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 3rem 0 0 0;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .column {
+    text-align: center;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .links {
+    align-items: center;
+  }
+
+  .link {
+    justify-content: center;
+  }
+
+  .link:hover {
+    padding-left: 0;
+    transform: none;
+  }
+
+  .contactInfo {
+    align-items: center;
+  }
+
+  .contactItem {
+    justify-content: center;
+  }
+
+  .columnTitle::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .bottom {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .developers {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 2rem 0 0 0;
+  }
+
+  .brandName {
+    font-size: 1.5rem;
+  }
+
+  .columnTitle {
+    font-size: 1rem;
+  }
+
+  .description,
+  .link,
+  .contactItem {
+    font-size: 0.875rem;
+  }
+
+  .socialLink {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .developers {
+    font-size: 0.813rem;
+  }
+
+  .copyright {
+    font-size: 0.813rem;
+  }
+}
