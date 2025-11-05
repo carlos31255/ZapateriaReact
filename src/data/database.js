@@ -23,7 +23,17 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400",
     categoria: "hombre",
     descripcion: "Elegantes zapatos Oxford de cuero genuino para hombre",
-    stock: 15,
+    stock: 35,
+    stockPorTalla: [
+      { talla: 38, stock: 3 },
+      { talla: 39, stock: 4 },
+      { talla: 40, stock: 5 },
+      { talla: 41, stock: 6 },
+      { talla: 42, stock: 7 },
+      { talla: 43, stock: 5 },
+      { talla: 44, stock: 3 },
+      { talla: 45, stock: 2 }
+    ],
     destacado: true
   },
   {
@@ -33,7 +43,16 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400",
     categoria: "mujer",
     descripcion: "Tacones altos elegantes para ocasiones especiales",
-    stock: 5,
+    stock: 28,
+    stockPorTalla: [
+      { talla: 35, stock: 2 },
+      { talla: 36, stock: 4 },
+      { talla: 37, stock: 5 },
+      { talla: 38, stock: 6 },
+      { talla: 39, stock: 5 },
+      { talla: 40, stock: 4 },
+      { talla: 41, stock: 2 }
+    ],
     destacado: true
   },
   {
@@ -43,7 +62,19 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
     categoria: "deportivos",
     descripcion: "Zapatillas deportivas cómodas para running",
-    stock: 20,
+    stock: 48,
+    stockPorTalla: [
+      { talla: 36, stock: 3 },
+      { talla: 37, stock: 4 },
+      { talla: 38, stock: 5 },
+      { talla: 39, stock: 6 },
+      { talla: 40, stock: 7 },
+      { talla: 41, stock: 6 },
+      { talla: 42, stock: 6 },
+      { talla: 43, stock: 5 },
+      { talla: 44, stock: 4 },
+      { talla: 45, stock: 2 }
+    ],
     destacado: true
   },
   {
@@ -53,7 +84,16 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400",
     categoria: "hombre",
     descripcion: "Botas robustas de cuero para uso diario",
-    stock: 12,
+    stock: 32,
+    stockPorTalla: [
+      { talla: 39, stock: 3 },
+      { talla: 40, stock: 5 },
+      { talla: 41, stock: 6 },
+      { talla: 42, stock: 7 },
+      { talla: 43, stock: 6 },
+      { talla: 44, stock: 3 },
+      { talla: 45, stock: 2 }
+    ],
     destacado: false
   },
   {
@@ -63,7 +103,17 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1603808033176-e2f2d3a00645?w=400",
     categoria: "mujer",
     descripcion: "Sandalias cómodas para el verano",
-    stock: 25,
+    stock: 40,
+    stockPorTalla: [
+      { talla: 35, stock: 4 },
+      { talla: 36, stock: 5 },
+      { talla: 37, stock: 6 },
+      { talla: 38, stock: 7 },
+      { talla: 39, stock: 6 },
+      { talla: 40, stock: 6 },
+      { talla: 41, stock: 4 },
+      { talla: 42, stock: 2 }
+    ],
     destacado: false
   },
   {
@@ -74,6 +124,12 @@ export const productosIniciales = [
     categoria: "niños",
     descripcion: "Zapatos escolares resistentes y cómodos",
     stock: 0,
+    stockPorTalla: [
+      { talla: 35, stock: 0 },
+      { talla: 36, stock: 0 },
+      { talla: 37, stock: 0 },
+      { talla: 38, stock: 0 }
+    ],
     destacado: false
   },
   {
@@ -83,7 +139,17 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400",
     categoria: "mujer",
     descripcion: "Zapatillas casuales para uso diario",
-    stock: 18,
+    stock: 38,
+    stockPorTalla: [
+      { talla: 35, stock: 3 },
+      { talla: 36, stock: 4 },
+      { talla: 37, stock: 5 },
+      { talla: 38, stock: 6 },
+      { talla: 39, stock: 6 },
+      { talla: 40, stock: 5 },
+      { talla: 41, stock: 5 },
+      { talla: 42, stock: 4 }
+    ],
     destacado: true
   },
   {
@@ -93,7 +159,17 @@ export const productosIniciales = [
     imagen: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400",
     categoria: "hombre",
     descripcion: "Zapatos formales para eventos especiales",
-    stock: 10,
+    stock: 30,
+    stockPorTalla: [
+      { talla: 38, stock: 2 },
+      { talla: 39, stock: 4 },
+      { talla: 40, stock: 5 },
+      { talla: 41, stock: 6 },
+      { talla: 42, stock: 5 },
+      { talla: 43, stock: 4 },
+      { talla: 44, stock: 3 },
+      { talla: 45, stock: 1 }
+    ],
     destacado: false
   }
 ];
@@ -366,11 +442,18 @@ export const obtenerProductoPorId = (id) => {
 
 /**
  * LEER: Obtiene productos destacados
- * @returns {Array} Array de productos destacados con stock
+ * @returns {Array} Array de productos destacados con stock disponible
  */
 export const obtenerProductosDestacados = () => {
   const productos = obtenerProductos();
-  return productos.filter(p => p.destacado && p.stock > 0);
+  return productos.filter(p => {
+    if (!p.destacado) return false;
+    // Verificar si hay al menos una talla con stock
+    if (p.stockPorTalla && p.stockPorTalla.length > 0) {
+      return p.stockPorTalla.some(st => st.stock > 0);
+    }
+    return false;
+  });
 };
 
 /**
@@ -431,14 +514,10 @@ export const eliminarProducto = (id) => {
 };
 
 /**
- * ACTUALIZAR: Actualiza el stock de un producto
- * @param {number} id - ID del producto
- * @param {number} cantidad - Nueva cantidad de stock
- * @returns {boolean} true si se actualizó, false si no existe
+ * ACTUALIZAR: Actualiza el stock de un producto (OBSOLETO - usar stockPorTalla)
+ * Esta función ya no se utiliza. El stock ahora se maneja por talla individual.
+ * @deprecated Usar actualizarProducto con stockPorTalla array
  */
-export const actualizarStock = (id, cantidad) => {
-  return actualizarProducto(id, { stock: cantidad });
-};
 
 // ==================== CRUD - USUARIOS ====================
 
@@ -803,6 +882,12 @@ export const obtenerEstadisticas = () => {
     totalContactos: obtenerContactos().length,
     totalPedidos: obtenerPedidos().length,
     productosDestacados: obtenerProductosDestacados().length,
-    productosSinStock: obtenerProductos().filter(p => p.stock === 0).length
+    productosSinStock: obtenerProductos().filter(p => {
+      // Verificar si todas las tallas tienen stock 0
+      if (p.stockPorTalla && p.stockPorTalla.length > 0) {
+        return p.stockPorTalla.every(st => st.stock === 0);
+      }
+      return true; // Si no hay stockPorTalla, considerarlo sin stock
+    }).length
   };
 };

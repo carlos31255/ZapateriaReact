@@ -8,8 +8,7 @@ import {
   filtrarProductosPorCategoria,
   crearProducto,
   actualizarProducto,
-  eliminarProducto,
-  actualizarStock
+  eliminarProducto
 } from '../data/database';
 
 // Simula un delay de red para hacer más realista la experiencia
@@ -253,48 +252,27 @@ export const fetchEliminarProducto = async (id: number): Promise<ApiResponse<boo
   }
 };
 
-// Actualiza el stock de un producto
+// Actualiza el stock de un producto (OBSOLETO - usar stockPorTalla)
+// @deprecated El stock ahora se maneja por talla. Usar fetchActualizarProducto con stockPorTalla
 export const fetchActualizarStock = async (
   id: number,
   cantidad: number
 ): Promise<ApiResponse<boolean>> => {
-  try {
-    await simularDelay(400);
-    
-    if (cantidad < 0) {
-      return {
-        success: false,
-        error: 'El stock no puede ser negativo'
-      };
-    }
-    
-    const resultado = actualizarStock(id, cantidad);
-    
-    if (!resultado) {
-      return {
-        success: false,
-        error: 'Producto no encontrado'
-      };
-    }
-    
-    return {
-      success: true,
-      data: true,
-      message: 'Stock actualizado exitosamente'
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: 'Error al actualizar el stock'
-    };
-  }
+  console.warn('fetchActualizarStock está obsoleto. Use fetchActualizarProducto con stockPorTalla');
+  return {
+    success: false,
+    error: 'Esta función está obsoleta. Use el sistema de tallas'
+  };
 };
 
 // FUNCIONES DE UTILIDAD
 
-// Verifica si un producto está disponible
+// Verifica si un producto está disponible (con stock en alguna talla)
 export const productoDisponible = (producto: Producto): boolean => {
-  return producto.stock > 0;
+  if (producto.stockPorTalla && producto.stockPorTalla.length > 0) {
+    return producto.stockPorTalla.some(t => t.stock > 0);
+  }
+  return false;
 };
 
 // Calcula precio con descuento

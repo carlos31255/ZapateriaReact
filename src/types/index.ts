@@ -6,6 +6,15 @@ export type RolUsuario = 'cliente' | 'vendedor' | 'administrador';
 // Tipos de categorías de productos
 export type CategoriaProducto = 'hombre' | 'mujer' | 'niños' | 'deportivos';
 
+// Tallas disponibles de calzado
+export type TallaCalzado = 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45;
+
+// Stock por talla
+export interface StockTalla {
+  talla: TallaCalzado;
+  stock: number;
+}
+
 // Estados posibles de un pedido
 export type EstadoPedido = 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
 
@@ -69,13 +78,15 @@ export interface Producto {
   imagen: string;
   categoria: CategoriaProducto;
   descripcion: string;
-  stock: number;
+  stock: number; // Stock total (suma de todas las tallas)
+  stockPorTalla?: StockTalla[]; // Stock detallado por talla
   destacado?: boolean;
 }
 
 // Producto en el carrito
 export interface ProductoCarrito extends Producto {
   cantidad: number;
+  tallaSeleccionada?: TallaCalzado; // Talla seleccionada en el carrito
 }
 
 // Filtros para productos

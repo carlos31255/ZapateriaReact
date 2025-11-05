@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import type { Producto } from '../../types';
-import { useCart } from '../../context/CartContext';
 import { formatearPrecio } from '../../services/productService';
 import { ProductModal } from './ProductModal';
 import styles from './ProductCard.module.css';
@@ -13,19 +12,16 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ producto, previewMode = false }: ProductCardProps) => {
-  const { agregarProducto } = useCart();
   const [showModal, setShowModal] = useState(false);
+
+  // Verificar si hay tallas disponibles con stock
+  const hayStockDisponible = producto.stockPorTalla ? producto.stockPorTalla.some(t => t.stock > 0) : false;
+  const stockTotal = producto.stockPorTalla?.reduce((sum, t) => sum + t.stock, 0) || 0;
 
   const handleAgregarCarrito = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que abra el modal
-    try {
-      await agregarProducto(producto.id);
-      // Toast notification o feedback visual aquí
-      console.log('Producto agregado al carrito');
-    } catch (error) {
-      console.error('Error al agregar:', error);
-      alert('Error al agregar el producto');
-    }
+    // Para agregar desde la card, necesitamos abrir el modal para seleccionar talla
+    setShowModal(true);
   };
 
   const handleCardClick = () => {
@@ -46,7 +42,7 @@ export const ProductCard = ({ producto, previewMode = false }: ProductCardProps)
           {producto.destacado && (
             <span className={styles.badge}>Destacado</span>
           )}
-          {producto.stock === 0 && (
+          {!hayStockDisponible && (
             <div className={styles.outOfStock}>Sin Stock</div>
           )}
         </div>
@@ -68,9 +64,9 @@ export const ProductCard = ({ producto, previewMode = false }: ProductCardProps)
               <span className={styles.price}>
                 {formatearPrecio(producto.precio)}
               </span>
-              {producto.stock > 0 && producto.stock < 5 && (
+              {stockTotal > 0 && stockTotal < 10 && (
                 <span className={styles.lowStock}>
-                  ¡Solo quedan {producto.stock}!
+                  ¡Pocas unidades!
                 </span>
               )}
             </div>
@@ -78,10 +74,10 @@ export const ProductCard = ({ producto, previewMode = false }: ProductCardProps)
             <button
               className={`btn btn-primary btn-sm ${styles.addButton}`}
               onClick={handleAgregarCarrito}
-              disabled={producto.stock === 0 || previewMode}
+              disabled={!hayStockDisponible || previewMode}
               title={previewMode ? 'Función deshabilitada en modo vista previa' : ''}
             >
-              {producto.stock > 0 ? (
+              {hayStockDisponible ? (
                 <>
                   <i className="bi bi-cart-plus"></i> {previewMode ? 'Ver más' : 'Agregar'}
                 </>

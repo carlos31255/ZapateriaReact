@@ -208,6 +208,140 @@
   border-radius: 8px;
 }
 
+/* Selector de Tallas */
+.sizesSection {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+}
+
+.sizesTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.sizesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sizeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.sizeButton:hover {
+  border-color: var(--color-primary, #0d6efd);
+  background: #e7f3ff;
+  transform: translateY(-2px);
+}
+
+.sizeButton.sizeSelected {
+  background: var(--color-primary, #0d6efd);
+  border-color: var(--color-primary, #0d6efd);
+  color: white;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.sizeNumber {
+  font-size: 1.1rem;
+}
+
+.sizeStock {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.sizeInfo {
+  margin: 0;
+  color: #28a745;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* Selector de Cantidad */
+.quantitySection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+}
+
+.quantityLabel {
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.quantityButton {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #dee2e6;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  color: #495057;
+}
+
+.quantityButton:hover {
+  border-color: var(--color-primary, #0d6efd);
+  color: var(--color-primary, #0d6efd);
+  background: #e7f3ff;
+}
+
+.quantityInput {
+  width: 60px;
+  height: 36px;
+  text-align: center;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.quantityInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #0d6efd);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
 /* Botón agregar */
 .addButton {
   margin-top: auto;

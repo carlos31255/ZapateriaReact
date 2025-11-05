@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { fetchProductos } from '../services/productService';
 import { crearProducto, actualizarProducto, eliminarProducto } from '../data/database';
-import type { Producto, CategoriaProducto } from '../types';
+import type { Producto, CategoriaProducto, TallaCalzado, StockTalla } from '../types';
 import styles from './AdminProductosPage.module.css';
+
+const TALLAS_DISPONIBLES: TallaCalzado[] = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
 
 export const AdminProductosPage = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -17,9 +19,11 @@ export const AdminProductosPage = () => {
     imagen: '',
     categoria: 'hombre' as CategoriaProducto,
     descripcion: '',
-    stock: '',
     destacado: false
   });
+  const [stockPorTalla, setStockPorTalla] = useState<StockTalla[]>(
+    TALLAS_DISPONIBLES.map(talla => ({ talla, stock: 0 }))
+  );
 
   useEffect(() => {
     // Registrar visita a esta página
@@ -64,9 +68,9 @@ export const AdminProductosPage = () => {
       imagen: '',
       categoria: 'hombre',
       descripcion: '',
-      stock: '',
       destacado: false
     });
+    setStockPorTalla(TALLAS_DISPONIBLES.map(talla => ({ talla, stock: 0 })));
     setShowModal(true);
   };
 
@@ -78,23 +82,41 @@ export const AdminProductosPage = () => {
       imagen: producto.imagen,
       categoria: producto.categoria,
       descripcion: producto.descripcion,
-      stock: producto.stock.toString(),
       destacado: producto.destacado || false
     });
+    // Cargar stock por talla existente o crear uno vacío
+    const tallasExistentes = producto.stockPorTalla || [];
+    const tallasCompletas = TALLAS_DISPONIBLES.map(talla => {
+      const tallaExistente = tallasExistentes.find(t => t.talla === talla);
+      return tallaExistente || { talla, stock: 0 };
+    });
+    setStockPorTalla(tallasCompletas);
     setShowModal(true);
+  };
+
+  const handleStockTallaChange = (talla: TallaCalzado, stock: number) => {
+    setStockPorTalla(prev =>
+      prev.map(item =>
+        item.talla === talla ? { ...item, stock: Math.max(0, stock) } : item
+      )
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      // Calcular stock total
+      const stockTotal = stockPorTalla.reduce((sum, item) => sum + item.stock, 0);
+      
       const productoData = {
         nombre: formData.nombre,
         precio: Number(formData.precio),
         imagen: formData.imagen,
         categoria: formData.categoria,
         descripcion: formData.descripcion,
-        stock: Number(formData.stock),
+        stock: stockTotal,
+        stockPorTalla: stockPorTalla,
         destacado: formData.destacado
       };
 
@@ -180,9 +202,14 @@ export const AdminProductosPage = () => {
                   </td>
                   <td className={styles.price}>${producto.precio.toLocaleString()}</td>
                   <td>
-                    <span className={`${styles.stockBadge} ${producto.stock === 0 ? styles.outOfStock : producto.stock < 5 ? styles.lowStock : styles.inStock}`}>
-                      {producto.stock} unidades
-                    </span>
+                    {(() => {
+                      const stockTotal = producto.stockPorTalla?.reduce((sum, t) => sum + t.stock, 0) || 0;
+                      return (
+                        <span className={`${styles.stockBadge} ${stockTotal === 0 ? styles.outOfStock : stockTotal < 10 ? styles.lowStock : styles.inStock}`}>
+                          {stockTotal} unidades
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td>
                     {producto.destacado && <i className="bi bi-star-fill text-warning"></i>}
@@ -265,17 +292,32 @@ export const AdminProductosPage = () => {
                   </select>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label>Stock *</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={formData.stock}
-                    onChange={handleInputChange}
-                    required
-                    min="0"
-                    placeholder="Ej: 15"
-                  />
+                {/* Stock por Tallas */}
+                <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                  <label>
+                    <i className="bi bi-rulers me-2"></i>
+                    Stock por Talla *
+                    <small className="text-muted ms-2">
+                      (Total: {stockPorTalla.reduce((sum, item) => sum + item.stock, 0)} unidades)
+                    </small>
+                  </label>
+                  <div className={styles.tallasGrid}>
+                    {stockPorTalla.map((item) => (
+                      <div key={item.talla} className={styles.tallaItem}>
+                        <label className={styles.tallaLabel}>
+                          Talla {item.talla}
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.stock}
+                          onChange={(e) => handleStockTallaChange(item.talla, Number(e.target.value))}
+                          className={styles.tallaInput}
+                          placeholder="0"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>

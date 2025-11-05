@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 import type { AxiosResponse } from 'axios';
-import type { ProductoCarrito, Carrito, ApiResponse } from '../types';
+import type { ProductoCarrito, Carrito, ApiResponse, TallaCalzado } from '../types';
 import { obtenerProductoPorId } from '../data/database';
 import { getStorageKeys } from '../data/database';
 
@@ -96,7 +96,8 @@ export const axiosObtenerCarrito = async (): Promise<Carrito> => {
 // Agrega un producto al carrito usando Axios
 export const axiosAgregarAlCarrito = async (
   productoId: number,
-  cantidad: number = 1
+  cantidad: number = 1,
+  talla?: TallaCalzado
 ): Promise<ApiResponse<Carrito>> => {
   try {
     // Obtener producto de la base de datos
@@ -109,10 +110,29 @@ export const axiosAgregarAlCarrito = async (
       };
     }
     
-    if (producto.stock < cantidad) {
+    // Si se especificó una talla, verificar stock de esa talla
+    let stockDisponible = 0;
+    if (talla && producto.stockPorTalla) {
+      const tallaBuscada = producto.stockPorTalla.find(t => t.talla === talla);
+      if (!tallaBuscada) {
+        return {
+          success: false,
+          error: `Talla ${talla} no disponible`
+        };
+      }
+      stockDisponible = tallaBuscada.stock;
+    } else {
+      // Si no se especificó talla, no se puede agregar (sistema basado en tallas)
       return {
         success: false,
-        error: 'Stock insuficiente'
+        error: 'Debe seleccionar una talla'
+      };
+    }
+    
+    if (stockDisponible < cantidad) {
+      return {
+        success: false,
+        error: 'Stock insuficiente para la talla seleccionada'
       };
     }
     
@@ -126,13 +146,15 @@ export const axiosAgregarAlCarrito = async (
     // Obtener items actuales del carrito
     const items = obtenerItemsCarrito();
     
-    // Verificar si el producto ya está en el carrito
-    const itemExistente = items.find(item => item.id === productoId);
+    // Verificar si el producto con la misma talla ya está en el carrito
+    const itemExistente = items.find(item => 
+      item.id === productoId && (!talla || item.tallaSeleccionada === talla)
+    );
     
     if (itemExistente) {
       // Verificar stock disponible
       const nuevaCantidad = itemExistente.cantidad + cantidad;
-      if (nuevaCantidad > producto.stock) {
+      if (nuevaCantidad > stockDisponible) {
         return {
           success: false,
           error: 'No hay suficiente stock disponible'
@@ -142,10 +164,12 @@ export const axiosAgregarAlCarrito = async (
       // Actualizar cantidad
       itemExistente.cantidad = nuevaCantidad;
     } else {
-      // Agregar nuevo item
+      // Agregar nuevo item con el stock específico de la talla
       const nuevoItem: ProductoCarrito = {
         ...producto,
-        cantidad
+        cantidad,
+        tallaSeleccionada: talla,
+        stock: stockDisponible // Guardar el stock de la talla específica
       };
       items.push(nuevoItem);
     }
@@ -198,13 +222,16 @@ export const axiosActualizarCantidad = async (
       };
     }
     
-    // Verificar stock disponible
+    // Verificar stock disponible para la talla específica
     const producto = obtenerProductoPorId(productoId);
-    if (producto && cantidad > producto.stock) {
-      return {
-        success: false,
-        error: 'Stock insuficiente'
-      };
+    if (producto && item.tallaSeleccionada) {
+      const stockTalla = producto.stockPorTalla?.find(t => t.talla === item.tallaSeleccionada)?.stock || 0;
+      if (cantidad > stockTalla) {
+        return {
+          success: false,
+          error: 'Stock insuficiente para esta talla'
+        };
+      }
     }
     
     if (cantidad === 0) {

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Carrito } from '../types';
+import type { Carrito, TallaCalzado } from '../types';
 import {
   axiosObtenerCarrito,
   axiosAgregarAlCarrito,
@@ -17,7 +17,7 @@ interface CartContextType {
   carrito: Carrito;
   cargando: boolean;
   error: string | null;
-  agregarProducto: (productoId: number, cantidad?: number) => Promise<void>;
+  agregarProducto: (productoId: number, cantidad?: number, talla?: TallaCalzado) => Promise<void>;
   actualizarCantidad: (productoId: number, cantidad: number) => Promise<void>;
   eliminarProducto: (productoId: number) => Promise<void>;
   vaciarCarrito: () => Promise<void>;
@@ -64,12 +64,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   };
 
   // Agrega un producto al carrito
-  const agregarProducto = async (productoId: number, cantidad: number = 1): Promise<void> => {
+  const agregarProducto = async (productoId: number, cantidad: number = 1, talla?: TallaCalzado): Promise<void> => {
     try {
       setCargando(true);
       setError(null);
 
-      const respuesta = await axiosAgregarAlCarrito(productoId, cantidad);
+      const respuesta = await axiosAgregarAlCarrito(productoId, cantidad, talla);
 
       if (respuesta.success && respuesta.data) {
         setCarrito(respuesta.data);

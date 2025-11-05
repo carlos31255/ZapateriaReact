@@ -34,7 +34,8 @@ export function filtrarProductosPorCategoria(categoria: CategoriaProducto | 'tod
 export function crearProducto(producto: Omit<Producto, 'id'>): Producto;
 export function actualizarProducto(id: number, datosActualizados: Partial<Producto>): boolean;
 export function eliminarProducto(id: number): boolean;
-export function actualizarStock(id: number, cantidad: number): boolean;
+// @deprecated Use actualizarProducto con stockPorTalla array
+// export function actualizarStock(id: number, cantidad: number): boolean;
 
 // ==================== CRUD - USUARIOS ====================
 

@@ -297,6 +297,48 @@
   cursor: pointer;
 }
 
+/* Grid de Tallas */
+.tallasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.tallaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tallaLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+}
+
+.tallaInput {
+  padding: 0.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.tallaInput:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.tallaInput::-webkit-inner-spin-button,
+.tallaInput::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;

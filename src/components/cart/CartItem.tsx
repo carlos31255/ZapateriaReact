@@ -53,6 +53,12 @@ export const CartItem = ({ item }: CartItemProps) => {
       <div className={styles.info}>
         <h3 className={styles.name}>{item.nombre}</h3>
         <p className={styles.category}>{item.categoria}</p>
+        {item.tallaSeleccionada && (
+          <p className={styles.size}>
+            <i className="bi bi-rulers me-1"></i>
+            Talla: <strong>{item.tallaSeleccionada}</strong>
+          </p>
+        )}
         <p className={styles.price}>{formatearPrecio(item.precio)}</p>
       </div>
 
