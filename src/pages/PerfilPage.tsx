@@ -3,11 +3,12 @@ import type { FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Usuario } from '../types';
-import { obtenerUsuarioPorId, actualizarUsuario } from '../services/authService';
+import { useUsuarios } from '../hooks';
 
 export const PerfilPage = () => {
   const { usuario, cerrarSesionUsuario } = useAuth();
   const navigate = useNavigate();
+  const { fetchUsuarioPorId, fetchActualizarUsuario } = useUsuarios();
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -35,7 +36,7 @@ export const PerfilPage = () => {
     if (!usuario) return;
     
     try {
-      const respuesta = await obtenerUsuarioPorId(usuario.id);
+      const respuesta = await fetchUsuarioPorId(usuario.id);
       if (respuesta.success && respuesta.data) {
         const user = respuesta.data;
         setFormData({
@@ -64,7 +65,7 @@ export const PerfilPage = () => {
 
     try {
       // Obtener el usuario completo
-      const respuestaUsuario = await obtenerUsuarioPorId(usuario.id);
+      const respuestaUsuario = await fetchUsuarioPorId(usuario.id);
       if (!respuestaUsuario.success || !respuestaUsuario.data) {
         throw new Error('No se pudo obtener el usuario');
       }
@@ -83,7 +84,7 @@ export const PerfilPage = () => {
         direccion: formData.direccion
       };
 
-      const respuesta = await actualizarUsuario(usuarioActualizado);
+      const respuesta = await fetchActualizarUsuario(usuario.id, usuarioActualizado);
       
       if (respuesta.success) {
         setSuccess('Perfil actualizado correctamente');

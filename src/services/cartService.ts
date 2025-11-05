@@ -1,21 +1,20 @@
 // SERVICIO DE CARRITO CON AXIOS
 
-import axios from 'axios';
+// import axios from 'axios';
 import type { AxiosResponse } from 'axios';
-import type { ProductoCarrito, Carrito, ApiResponse, TallaCalzado } from '../types';
-import { obtenerProductoPorId } from '../data/database';
+import type { ProductoCarrito, Carrito, ApiResponse, TallaCalzado, Producto } from '../types';
 import { getStorageKeys } from '../data/database';
 
 const STORAGE_KEYS = getStorageKeys();
 
 // Configuración de Axios simulado - En producción, esto apuntaría a una API real
-const api = axios.create({
-  baseURL: '/api',
-  timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+// const api = axios.create({
+//   baseURL: '/api',
+//   timeout: 5000,
+//   headers: {
+//     'Content-Type': 'application/json'
+//   }
+// });
 
 // Simula respuestas de API localmente
 const simularRespuestaAxios = async <T>(
@@ -97,11 +96,22 @@ export const axiosObtenerCarrito = async (): Promise<Carrito> => {
 export const axiosAgregarAlCarrito = async (
   productoId: number,
   cantidad: number = 1,
-  talla?: TallaCalzado
+  talla?: TallaCalzado,
+  obtenerProducto?: (id: number) => Producto | undefined // Función inyectada desde el Context
 ): Promise<ApiResponse<Carrito>> => {
   try {
-    // Obtener producto de la base de datos
-    const producto = obtenerProductoPorId(productoId);
+    // Obtener producto - si no se proporciona función, intentar desde localStorage legacy
+    let producto: Producto | undefined;
+    if (obtenerProducto) {
+      producto = obtenerProducto(productoId);
+    } else {
+      // Fallback a localStorage para retrocompatibilidad
+      const productosStr = localStorage.getItem('productos');
+      if (productosStr) {
+        const productos = JSON.parse(productosStr);
+        producto = productos.find((p: Producto) => p.id === productoId);
+      }
+    }
     
     if (!producto) {
       return {
@@ -202,7 +212,8 @@ export const axiosAgregarAlCarrito = async (
 // Actualiza la cantidad de un item en el carrito usando Axios
 export const axiosActualizarCantidad = async (
   productoId: number,
-  cantidad: number
+  cantidad: number,
+  obtenerProducto?: (id: number) => Producto | undefined // Función inyectada desde el Context
 ): Promise<ApiResponse<Carrito>> => {
   try {
     if (cantidad < 0) {
@@ -223,7 +234,18 @@ export const axiosActualizarCantidad = async (
     }
     
     // Verificar stock disponible para la talla específica
-    const producto = obtenerProductoPorId(productoId);
+    let producto: Producto | undefined;
+    if (obtenerProducto) {
+      producto = obtenerProducto(productoId);
+    } else {
+      // Fallback a localStorage
+      const productosStr = localStorage.getItem('productos');
+      if (productosStr) {
+        const productos = JSON.parse(productosStr);
+        producto = productos.find((p: Producto) => p.id === productoId);
+      }
+    }
+    
     if (producto && item.tallaSeleccionada) {
       const stockTalla = producto.stockPorTalla?.find(t => t.talla === item.tallaSeleccionada)?.stock || 0;
       if (cantidad > stockTalla) {

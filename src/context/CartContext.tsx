@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Carrito, TallaCalzado } from '../types';
+import { useDatabase } from './DatabaseContext';
 import {
   axiosObtenerCarrito,
   axiosAgregarAlCarrito,
@@ -36,6 +37,8 @@ interface CartProviderProps {
 }
 
 export const CartProvider = ({ children }: CartProviderProps) => {
+  const { obtenerProductoPorId } = useDatabase(); // Obtener función del DatabaseContext
+  
   const [carrito, setCarrito] = useState<Carrito>({
     items: [],
     total: 0,
@@ -69,7 +72,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setCargando(true);
       setError(null);
 
-      const respuesta = await axiosAgregarAlCarrito(productoId, cantidad, talla);
+      const respuesta = await axiosAgregarAlCarrito(productoId, cantidad, talla, obtenerProductoPorId);
 
       if (respuesta.success && respuesta.data) {
         setCarrito(respuesta.data);
@@ -91,7 +94,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setCargando(true);
       setError(null);
 
-      const respuesta = await axiosActualizarCantidad(productoId, cantidad);
+      const respuesta = await axiosActualizarCantidad(productoId, cantidad, obtenerProductoPorId);
 
       if (respuesta.success && respuesta.data) {
         setCarrito(respuesta.data);

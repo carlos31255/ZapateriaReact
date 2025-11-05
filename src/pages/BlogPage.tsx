@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { BlogCard } from '../components/blog/blog-components.index';
-import { obtenerArticulos, obtenerArticulosPorCategoria } from '../services/blogService';
+import { useBlog } from '../hooks';
 import { EditButton } from '../components/admin/EditButton';
 import type { ArticuloBlog, CategoriaBlog } from '../types';
 
 type FilterCategory = CategoriaBlog | 'todos';
 
 export const BlogPage = () => {
+  const { fetchArticulos } = useBlog();
   const location = useLocation();
   const isPreviewMode = location.pathname.includes('/preview');
   const [articulos, setArticulos] = useState<ArticuloBlog[]>([]);
@@ -24,7 +25,7 @@ export const BlogPage = () => {
   const cargarArticulos = async () => {
     try {
       setLoading(true);
-      const response = await obtenerArticulos();
+      const response = await fetchArticulos();
       if (response.success && response.data) {
         setArticulos(response.data);
       }
@@ -40,9 +41,13 @@ export const BlogPage = () => {
       setLoading(true);
       setCategoriaActiva(categoria);
       
-      const response = await obtenerArticulosPorCategoria(categoria);
+      // Filtrar localmente
+      const response = await fetchArticulos();
       if (response.success && response.data) {
-        setArticulos(response.data);
+        const articulosFiltrados = categoria === 'todos'
+          ? response.data
+          : response.data.filter(a => a.categoria === categoria);
+        setArticulos(articulosFiltrados);
       }
     } catch (error) {
       console.error('Error al filtrar artículos:', error);

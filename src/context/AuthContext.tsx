@@ -3,15 +3,17 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { UsuarioAutenticado, CredencialesLogin, DatosRegistro } from '../types';
+import type { Usuario, UsuarioAutenticado, CredencialesLogin, DatosRegistro } from '../types';
+import { useDatabase } from './DatabaseContext';
 import {
-  login,
-  registrar,
-  cerrarSesion,
-  obtenerUsuarioActual,
-  estaAutenticado as verificarAutenticacion
+  validarEmail,
+  validarRUT,
+  esMayorDeEdad,
+  getStorageKeys
 } from '../services/authService';
 import { axiosVaciarCarrito } from '../services/cartService';
+
+const STORAGE_KEYS = getStorageKeys();
 
 // TIPOS
 
@@ -39,16 +41,34 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const { obtenerUsuarioPorEmail, crearUsuario } = useDatabase();
   const [usuario, setUsuario] = useState<UsuarioAutenticado | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Simula delay de red
+  const simularDelay = (ms: number = 800): Promise<void> => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  };
+
+  // Obtiene el usuario actual de localStorage
+  const obtenerUsuarioActual = (): UsuarioAutenticado | null => {
+    const usuarioStr = localStorage.getItem(STORAGE_KEYS.USUARIO_ACTUAL);
+    if (!usuarioStr) return null;
+    
+    try {
+      return JSON.parse(usuarioStr);
+    } catch {
+      return null;
+    }
+  };
 
   // Verifica si hay una sesión activa al cargar la aplicación
   useEffect(() => {
     const verificarSesion = () => {
       try {
         const usuarioActual = obtenerUsuarioActual();
-        if (usuarioActual && verificarAutenticacion()) {
+        if (usuarioActual && usuarioActual.logueado) {
           setUsuario(usuarioActual);
         }
       } catch (err) {
@@ -67,30 +87,65 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setCargando(true);
       setError(null);
 
-      const respuesta = await login(credenciales);
+      // Simular delay de red
+      await simularDelay();
 
-      if (respuesta.success && respuesta.usuario) {
-        setUsuario(respuesta.usuario);
-        
-        // Si el usuario es administrador, vaciar el carrito automáticamente
-        if (respuesta.usuario.rol === 'administrador') {
-          try {
-            await axiosVaciarCarrito();
-            console.log('Carrito vaciado automáticamente para usuario administrador');
-          } catch (error) {
-            console.error('Error al vaciar carrito:', error);
-          }
-        }
-        
-        return respuesta.usuario;
-      } else {
-        // Si el login falló, lanzar error
-        const mensajeError = respuesta.error || 'Error al iniciar sesión';
-        setError(mensajeError);
-        throw new Error(mensajeError);
+      // Validaciones
+      if (!credenciales.email || !credenciales.contrasena) {
+        throw new Error('Email y contraseña son requeridos');
       }
+
+      if (!validarEmail(credenciales.email)) {
+        throw new Error('Email no válido');
+      }
+
+      // Buscar usuario usando DatabaseContext
+      const usuarioEncontrado = obtenerUsuarioPorEmail(credenciales.email);
+
+      if (!usuarioEncontrado) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      // Verificar contraseña
+      if (usuarioEncontrado.contrasena !== credenciales.contrasena) {
+        throw new Error('Contraseña incorrecta');
+      }
+
+      // Crear usuario autenticado (sin contraseña)
+      const usuarioAutenticado: UsuarioAutenticado = {
+        id: usuarioEncontrado.id,
+        run: usuarioEncontrado.run,
+        nombre: usuarioEncontrado.nombre,
+        email: usuarioEncontrado.email,
+        rol: usuarioEncontrado.rol,
+        genero: usuarioEncontrado.genero,
+        fechaNacimiento: usuarioEncontrado.fechaNacimiento,
+        region: usuarioEncontrado.region,
+        comuna: usuarioEncontrado.comuna,
+        direccion: usuarioEncontrado.direccion,
+        telefono: usuarioEncontrado.telefono,
+        fechaRegistro: usuarioEncontrado.fechaRegistro,
+        logueado: true
+      };
+
+      // Guardar sesión en localStorage
+      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
+
+      setUsuario(usuarioAutenticado);
+
+      // Si el usuario es administrador, vaciar el carrito automáticamente
+      if (usuarioAutenticado.rol === 'administrador') {
+        try {
+          await axiosVaciarCarrito();
+          console.log('Carrito vaciado automáticamente para usuario administrador');
+        } catch (error) {
+          console.error('Error al vaciar carrito:', error);
+        }
+      }
+
+      return usuarioAutenticado;
     } catch (err: any) {
-      const mensajeError = err.message || err.error || 'Error al iniciar sesión';
+      const mensajeError = err.message || 'Error al iniciar sesión';
       setError(mensajeError);
       throw new Error(mensajeError);
     } finally {
@@ -104,13 +159,80 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setCargando(true);
       setError(null);
 
-      const respuesta = await registrar(datos);
+      // Simular delay de red
+      await simularDelay(1000);
 
-      if (respuesta.success && respuesta.usuario) {
-        setUsuario(respuesta.usuario);
+      // Validaciones
+      if (!datos.nombre || !datos.email || !datos.contrasena || !datos.run) {
+        throw new Error('Todos los campos obligatorios deben estar completos');
       }
+
+      if (!validarEmail(datos.email)) {
+        throw new Error('Email no válido');
+      }
+
+      if (!validarRUT(datos.run)) {
+        throw new Error('RUT no válido');
+      }
+
+      if (datos.contrasena.length < 6) {
+        throw new Error('La contraseña debe tener al menos 6 caracteres');
+      }
+
+      if (datos.contrasena !== datos.confirmarContrasena) {
+        throw new Error('Las contraseñas no coinciden');
+      }
+
+      if (datos.fechaNacimiento && !esMayorDeEdad(datos.fechaNacimiento)) {
+        throw new Error('Debe ser mayor de 18 años para registrarse');
+      }
+
+      // Verificar si el email ya existe
+      const usuarioExistente = obtenerUsuarioPorEmail(datos.email);
+      if (usuarioExistente) {
+        throw new Error('El email ya está registrado');
+      }
+
+      // Crear nuevo usuario usando DatabaseContext
+      const nuevoUsuario: Omit<Usuario, 'id' | 'fechaRegistro'> = {
+        run: datos.run,
+        nombre: datos.nombre,
+        email: datos.email,
+        contrasena: datos.contrasena,
+        rol: datos.rol || 'cliente',
+        genero: datos.genero,
+        fechaNacimiento: datos.fechaNacimiento,
+        region: datos.region,
+        comuna: datos.comuna,
+        direccion: datos.direccion,
+        telefono: datos.telefono
+      };
+
+      const usuarioCreado = crearUsuario(nuevoUsuario);
+
+      // Crear usuario autenticado
+      const usuarioAutenticado: UsuarioAutenticado = {
+        id: usuarioCreado.id,
+        run: usuarioCreado.run,
+        nombre: usuarioCreado.nombre,
+        email: usuarioCreado.email,
+        rol: usuarioCreado.rol,
+        genero: usuarioCreado.genero,
+        fechaNacimiento: usuarioCreado.fechaNacimiento,
+        region: usuarioCreado.region,
+        comuna: usuarioCreado.comuna,
+        direccion: usuarioCreado.direccion,
+        telefono: usuarioCreado.telefono,
+        fechaRegistro: usuarioCreado.fechaRegistro,
+        logueado: true
+      };
+
+      // Guardar sesión en localStorage
+      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
+
+      setUsuario(usuarioAutenticado);
     } catch (err: any) {
-      const mensajeError = err.error || 'Error al registrar usuario';
+      const mensajeError = err.message || 'Error al registrar usuario';
       setError(mensajeError);
       throw new Error(mensajeError);
     } finally {
@@ -122,7 +244,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const cerrarSesionUsuario = async (): Promise<void> => {
     try {
       setCargando(true);
-      await cerrarSesion();
+      localStorage.removeItem(STORAGE_KEYS.USUARIO_ACTUAL);
       setUsuario(null);
       setError(null);
     } catch (err) {

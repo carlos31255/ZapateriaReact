@@ -1,24 +1,25 @@
 // SERVICIO DE AUTENTICACIÓN
-// Este servicio maneja el login, registro y sesión de usuarios usando Promesas y simulando llamadas API
+// ⚠️ PARCIALMENTE DEPRECADO
+// ⚠️ Lógica de autenticación movida a AuthContext
+// ⚠️ Solo se mantienen funciones de validación (validarEmail, validarRUT, esMayorDeEdad)
 
 import type { Usuario, CredencialesLogin, DatosRegistro, UsuarioAutenticado, AuthResponse, ApiResponse } from '../types';
-import { 
-  obtenerUsuarioPorEmail, 
-  crearUsuario, 
-  getStorageKeys,
-  obtenerUsuarioPorId as getUsuarioById,
-  actualizarUsuario as updateUsuario
-} from '../data/database';
+import { getStorageKeys } from '../data/database';
+
+export { getStorageKeys }; // Re-exportar para uso en otros módulos
 
 const STORAGE_KEYS = getStorageKeys();
 
-// FUNCIONES DE AUTENTICACIÓN
+// ============================================
+// FUNCIONES DE VALIDACIÓN (ACTIVAS)
+// ============================================
 
 // Simula un delay de red para hacer más realista la experiencia
 const simularDelay = (ms: number = 800): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+// Exportar funciones de utilidad para validaciones
 // Valida formato de email
 export const validarEmail = (email: string): boolean => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

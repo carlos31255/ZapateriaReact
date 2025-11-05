@@ -2,11 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  obtenerArticulosBlog, 
-  crearArticuloBlog, 
-  actualizarArticuloBlog 
-} from '../data/database';
+import { useBlog } from '../hooks';
 import type { CategoriaBlog } from '../types';
 import styles from './AdminEditBlogPage.module.css';
 
@@ -25,6 +21,7 @@ export const AdminEditBlogPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = !id || id === 'new';
+  const { articulosBlog, fetchCrearArticulo, fetchActualizarArticulo } = useBlog();
 
   const [formData, setFormData] = useState<BlogEntry>({
     id: 0,
@@ -40,7 +37,6 @@ export const AdminEditBlogPage = () => {
   useEffect(() => {
     if (!isNew && id) {
       try {
-        const articulos = obtenerArticulosBlog();
         const articuloId = parseInt(id);
         
         if (isNaN(articuloId)) {
@@ -49,7 +45,7 @@ export const AdminEditBlogPage = () => {
           return;
         }
         
-        const articulo = articulos.find(a => a.id === articuloId);
+        const articulo = articulosBlog.find(a => a.id === articuloId);
         if (articulo) {
           setFormData({
             ...articulo,
@@ -67,12 +63,12 @@ export const AdminEditBlogPage = () => {
     }
   }, [id, isNew, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       if (isNew) {
-        // Crear nueva entrada usando la función de database
+        // Crear nueva entrada usando el hook
         const newEntry = {
           titulo: formData.titulo,
           resumen: formData.resumen,
@@ -84,13 +80,17 @@ export const AdminEditBlogPage = () => {
         };
         
         console.log('Creando nueva entrada:', newEntry);
-        const articuloCreado = crearArticuloBlog(newEntry);
-        console.log('Artículo creado con ID:', articuloCreado.id);
+        const result = await fetchCrearArticulo(newEntry);
         
-        alert('Entrada creada exitosamente');
-        navigate('/admin/blog');
+        if (result.success) {
+          console.log('Artículo creado con ID:', result.data?.id);
+          alert('Entrada creada exitosamente');
+          navigate('/admin/blog');
+        } else {
+          alert('Error al crear entrada: ' + result.error);
+        }
       } else {
-        // Actualizar entrada existente usando la función de database
+        // Actualizar entrada existente usando el hook
         console.log('Actualizando artículo ID:', formData.id);
         
         const datosActualizados = {
@@ -102,15 +102,15 @@ export const AdminEditBlogPage = () => {
           categoria: formData.categoria
         };
         
-        const success = actualizarArticuloBlog(formData.id, datosActualizados);
+        const result = await fetchActualizarArticulo(formData.id, datosActualizados);
         
-        if (success) {
+        if (result.success) {
           console.log('Artículo actualizado exitosamente');
           alert('Entrada actualizada exitosamente');
           navigate('/admin/blog');
         } else {
           console.error('No se pudo actualizar el artículo con ID:', formData.id);
-          alert('Error: No se encontró la entrada');
+          alert('Error: ' + result.error);
         }
       }
     } catch (error) {

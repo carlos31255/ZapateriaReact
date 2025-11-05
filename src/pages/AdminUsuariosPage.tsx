@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { obtenerUsuarios, eliminarUsuario, actualizarUsuario } from '../data/database';
+import { useUsuarios } from '../hooks';
 import type { Usuario } from '../types';
 import styles from './AdminUsuariosPage.module.css';
 
 export const AdminUsuariosPage = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const { usuarios, fetchUsuarios, fetchEliminarUsuario, fetchActualizarUsuario } = useUsuarios();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
 
@@ -22,9 +22,9 @@ export const AdminUsuariosPage = () => {
     cargarUsuarios();
   }, []);
 
-  const cargarUsuarios = () => {
-    const usuariosCargados = obtenerUsuarios();
-    setUsuarios(usuariosCargados);
+  const cargarUsuarios = async () => {
+    // Los usuarios ya están disponibles en el Context a través del hook
+    await fetchUsuarios();
   };
 
   const abrirModal = (usuario?: Usuario) => {
@@ -41,14 +41,14 @@ export const AdminUsuariosPage = () => {
     setUsuarioEditando(null);
   };
 
-  const handleEliminar = (id: string) => {
+  const handleEliminar = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-      eliminarUsuario(id);
-      cargarUsuarios();
+      await fetchEliminarUsuario(id);
+      await cargarUsuarios();
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
@@ -61,10 +61,10 @@ export const AdminUsuariosPage = () => {
         rol: formData.get('rol') as 'cliente' | 'vendedor' | 'administrador',
       };
 
-      actualizarUsuario(usuarioEditando.id, usuarioActualizado);
+      await fetchActualizarUsuario(usuarioEditando.id, usuarioActualizado);
     }
 
-    cargarUsuarios();
+    await cargarUsuarios();
     cerrarModal();
   };
 

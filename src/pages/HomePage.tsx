@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ProductCard } from '../components/products/products-components.index';
-import { fetchProductos } from '../services/productService';
+import { useProducts } from '../hooks';
 import type { Producto } from '../types';
 
 export const HomePage = () => {
+  const { fetchProductos } = useProducts();
   // Estado para productos destacados y carga
   const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);

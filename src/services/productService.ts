@@ -1,20 +1,19 @@
 // SERVICIO DE PRODUCTOS CON FETCH API
+// ⚠️ DEPRECADO: Este servicio ya no se usa directamente
+// ⚠️ Usar en su lugar: import { useProducts } from '../hooks'
+// ⚠️ El hook useProducts() proporciona todas las funciones necesarias
 
 import type { Producto, CategoriaProducto, ApiResponse } from '../types';
-import {
-  obtenerProductos,
-  obtenerProductoPorId,
-  obtenerProductosDestacados,
-  filtrarProductosPorCategoria,
-  crearProducto,
-  actualizarProducto,
-  eliminarProducto
-} from '../data/database';
 
 // Simula un delay de red para hacer más realista la experiencia
 const simularDelay = (ms: number = 500): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
+
+// ============================================
+// ⚠️ FUNCIONES LEGACY - NO USAR DIRECTAMENTE
+// ⚠️ Usar: const { fetchProductos, ... } = useProducts();
+// ============================================
 
 // OPERACIONES DE LECTURA (GET)
 

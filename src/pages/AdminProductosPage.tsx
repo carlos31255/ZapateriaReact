@@ -1,15 +1,14 @@
 // Página de gestión de productos para administradores
 
 import { useState, useEffect } from 'react';
-import { fetchProductos } from '../services/productService';
-import { crearProducto, actualizarProducto, eliminarProducto } from '../data/database';
+import { useProducts } from '../hooks';
 import type { Producto, CategoriaProducto, TallaCalzado, StockTalla } from '../types';
 import styles from './AdminProductosPage.module.css';
 
 const TALLAS_DISPONIBLES: TallaCalzado[] = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
 
 export const AdminProductosPage = () => {
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const { productos, fetchProductos, fetchCrearProducto, fetchActualizarProducto, fetchEliminarProducto } = useProducts();
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [productoEditar, setProductoEditar] = useState<Producto | null>(null);
@@ -43,7 +42,7 @@ export const AdminProductosPage = () => {
       setLoading(true);
       const response = await fetchProductos();
       if (response.success && response.data) {
-        setProductos(response.data);
+        // Los productos ya están en el Context, solo actualizamos loading
       }
     } catch (error) {
       console.error('Error al cargar productos:', error);
@@ -122,25 +121,25 @@ export const AdminProductosPage = () => {
 
       if (productoEditar) {
         // Actualizar producto existente
-        actualizarProducto(productoEditar.id, productoData);
+        await fetchActualizarProducto(productoEditar.id, productoData);
       } else {
-        // Agregar nuevo producto (crearProducto genera el ID automáticamente)
-        crearProducto(productoData);
+        // Agregar nuevo producto
+        await fetchCrearProducto(productoData);
       }
 
       setShowModal(false);
-      cargarProductos();
+      await cargarProductos();
     } catch (error) {
       console.error('Error al guardar producto:', error);
       alert('Error al guardar el producto');
     }
   };
 
-  const handleEliminar = (id: number) => {
+  const handleEliminar = async (id: number) => {
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
       try {
-        eliminarProducto(id);
-        cargarProductos();
+        await fetchEliminarProducto(id);
+        await cargarProductos();
       } catch (error) {
         console.error('Error al eliminar producto:', error);
         alert('Error al eliminar el producto');

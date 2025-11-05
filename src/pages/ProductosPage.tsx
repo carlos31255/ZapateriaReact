@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ProductList, ProductFilter } from '../components/products/products-components.index';
-import { fetchProductos, fetchProductosPorCategoria, buscarProductos } from '../services/productService';
+import { useProducts } from '../hooks';
 import type { FilterState }  from '../components/products/products-components.index';
 import type { Producto, CategoriaProducto } from '../types';
 
 export const ProductosPage = () => {
+  const { fetchProductos, fetchProductosPorCategoria, buscarProductos } = useProducts();
   // Estado de productos filtrados y loading
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
