@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { obtenerArticulosBlog } from '../data/database';
+import { 
+  obtenerArticulosBlog, 
+  crearArticuloBlog, 
+  actualizarArticuloBlog 
+} from '../data/database';
 import type { CategoriaBlog } from '../types';
 import styles from './AdminEditBlogPage.module.css';
 
@@ -20,7 +24,7 @@ interface BlogEntry {
 export const AdminEditBlogPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = !id || id === 'new';
 
   const [formData, setFormData] = useState<BlogEntry>({
     id: 0,
@@ -35,41 +39,84 @@ export const AdminEditBlogPage = () => {
 
   useEffect(() => {
     if (!isNew && id) {
-      const articulos = obtenerArticulosBlog();
-      const articulo = articulos.find(a => a.id === parseInt(id));
-      if (articulo) {
-        setFormData({
-          ...articulo,
-          autor: articulo.autor || 'StepStyle Team'
-        });
+      try {
+        const articulos = obtenerArticulosBlog();
+        const articuloId = parseInt(id);
+        
+        if (isNaN(articuloId)) {
+          console.error('ID inválido:', id);
+          navigate('/admin/blog');
+          return;
+        }
+        
+        const articulo = articulos.find(a => a.id === articuloId);
+        if (articulo) {
+          setFormData({
+            ...articulo,
+            autor: articulo.autor || 'StepStyle Team'
+          });
+        } else {
+          console.error('Artículo no encontrado con ID:', articuloId);
+          alert('No se encontró el artículo');
+          navigate('/admin/blog');
+        }
+      } catch (error) {
+        console.error('Error al cargar artículo:', error);
+        navigate('/admin/blog');
       }
     }
-  }, [id, isNew]);
+  }, [id, isNew, navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const articulos = obtenerArticulosBlog();
-
-    if (isNew) {
-      // Crear nueva entrada
-      const newEntry = {
-        ...formData,
-        id: Math.max(0, ...articulos.map(a => a.id)) + 1,
-        fecha: new Date().toISOString()
-      };
-      articulos.push(newEntry);
-    } else {
-      // Actualizar entrada existente
-      const index = articulos.findIndex(a => a.id === formData.id);
-      if (index !== -1) {
-        articulos[index] = formData;
+    try {
+      if (isNew) {
+        // Crear nueva entrada usando la función de database
+        const newEntry = {
+          titulo: formData.titulo,
+          resumen: formData.resumen,
+          imagen: formData.imagen,
+          fecha: new Date().toISOString(),
+          autor: formData.autor,
+          contenido: formData.contenido,
+          categoria: formData.categoria
+        };
+        
+        console.log('Creando nueva entrada:', newEntry);
+        const articuloCreado = crearArticuloBlog(newEntry);
+        console.log('Artículo creado con ID:', articuloCreado.id);
+        
+        alert('Entrada creada exitosamente');
+        navigate('/admin/blog');
+      } else {
+        // Actualizar entrada existente usando la función de database
+        console.log('Actualizando artículo ID:', formData.id);
+        
+        const datosActualizados = {
+          titulo: formData.titulo,
+          resumen: formData.resumen,
+          imagen: formData.imagen,
+          autor: formData.autor,
+          contenido: formData.contenido,
+          categoria: formData.categoria
+        };
+        
+        const success = actualizarArticuloBlog(formData.id, datosActualizados);
+        
+        if (success) {
+          console.log('Artículo actualizado exitosamente');
+          alert('Entrada actualizada exitosamente');
+          navigate('/admin/blog');
+        } else {
+          console.error('No se pudo actualizar el artículo con ID:', formData.id);
+          alert('Error: No se encontró la entrada');
+        }
       }
+    } catch (error) {
+      console.error('Error al guardar entrada:', error);
+      alert('Error al guardar la entrada: ' + (error as Error).message);
     }
-
-    localStorage.setItem('articulosBlog', JSON.stringify(articulos));
-    alert(`Entrada ${isNew ? 'creada' : 'actualizada'} exitosamente`);
-    navigate('/admin/blog');
   };
 
   return (

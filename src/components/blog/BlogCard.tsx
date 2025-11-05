@@ -1,4 +1,4 @@
-// Tarjeta individual de artículo del blog
+            // Tarjeta individual de artículo del blog
 
 import { useState } from 'react';
 import type { ArticuloBlog } from '../../types';

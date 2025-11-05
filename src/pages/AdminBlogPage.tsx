@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { obtenerArticulosBlog } from '../data/database';
+import { obtenerArticulosBlog, eliminarArticuloBlog } from '../data/database';
 import styles from './AdminBlogPage.module.css';
 
 interface BlogEntry {
@@ -36,22 +36,28 @@ export const AdminBlogPage = () => {
   const cargarEntradas = () => {
     // Usar la base de datos existente del sistema
     const articulos = obtenerArticulosBlog();
+    console.log('Artículos cargados desde localStorage:', articulos);
+    
     // Mapear a formato compatible
     const articulosFormateados = articulos.map(a => ({
       ...a,
       descripcion: a.resumen,
       autor: a.autor || 'StepStyle Team'
     }));
+    
+    console.log('Artículos formateados:', articulosFormateados);
     setEntradas(articulosFormateados);
   };
 
   const handleDelete = (id: number) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta entrada?')) {
-      // Eliminar del localStorage usando la función de la base de datos
-      const articulos = obtenerArticulosBlog();
-      const nuevosArticulos = articulos.filter(a => a.id !== id);
-      localStorage.setItem('articulosBlog', JSON.stringify(nuevosArticulos));
-      cargarEntradas();
+      // Usar la función de database para eliminar
+      const success = eliminarArticuloBlog(id);
+      if (success) {
+        cargarEntradas(); // Recargar la lista
+      } else {
+        alert('Error al eliminar la entrada');
+      }
     }
   };
 
