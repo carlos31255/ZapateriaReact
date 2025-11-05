@@ -1,8 +1,12 @@
 // Página informativa sobre la empresa StepStyle
 
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { EditButton } from '../components/admin/EditButton';
 
 export const NosotrosPage = () => {
+  const location = useLocation();
+  const isPreviewMode = location.pathname.includes('/preview');
   // Estado para controlar qué modal está abierto
   const [activeModal, setActiveModal] = useState<'historia' | 'mision' | 'vision' | 'tecnologia' | null>(null);
 
@@ -19,6 +23,14 @@ export const NosotrosPage = () => {
   return (
     // Contenedor principal con padding vertical
     <div className="container py-5">
+      {/* Botón de edición flotante (solo en modo preview) */}
+      {isPreviewMode && (
+        <EditButton 
+          editPath="/admin/nosotros/edit" 
+          label="Editar Nosotros" 
+        />
+      )}
+
       {/* Header: Título principal de la página */}
       <header className="text-center mb-5">
         <h1 className="display-4 fw-bold mb-3">

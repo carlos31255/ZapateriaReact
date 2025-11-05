@@ -22,6 +22,15 @@ export const AdminProductosPage = () => {
   });
 
   useEffect(() => {
+    // Registrar visita a esta página
+    const link = '/admin/productos';
+    const saved = localStorage.getItem('admin_recent_pages');
+    let recentLinks = saved ? JSON.parse(saved) : [];
+    recentLinks = recentLinks.filter((l: string) => l !== link);
+    recentLinks.unshift(link);
+    recentLinks = recentLinks.slice(0, 10);
+    localStorage.setItem('admin_recent_pages', JSON.stringify(recentLinks));
+
     cargarProductos();
   }, []);
 

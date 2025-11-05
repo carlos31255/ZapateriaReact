@@ -1,13 +1,17 @@
 // Página de blog con artículos sobre calzado
 
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { BlogCard } from '../components/blog/blog-components.index';
 import { obtenerArticulos, obtenerArticulosPorCategoria } from '../services/blogService';
+import { EditButton } from '../components/admin/EditButton';
 import type { ArticuloBlog, CategoriaBlog } from '../types';
 
 type FilterCategory = CategoriaBlog | 'todos';
 
 export const BlogPage = () => {
+  const location = useLocation();
+  const isPreviewMode = location.pathname.includes('/preview');
   const [articulos, setArticulos] = useState<ArticuloBlog[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoriaActiva, setCategoriaActiva] = useState<FilterCategory>('todos');
@@ -58,6 +62,14 @@ export const BlogPage = () => {
   return (
     // Contenedor principal
     <div className="container py-5">
+      {/* Botón de edición flotante (solo en modo preview) */}
+      {isPreviewMode && (
+        <EditButton 
+          editPath="/admin/blog" 
+          label="Gestionar Blog" 
+        />
+      )}
+
       {/* Encabezado de la página */}
       <header className="text-center mb-5">
         <h1 className="display-5 fw-bold mb-3">

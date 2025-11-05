@@ -56,6 +56,15 @@ export const AdminHeader = () => {
             </li>
             <li>
               <NavLink 
+                to="/admin/blog" 
+                className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
+              >
+                <i className="bi bi-journal-text"></i>
+                <span>Blog</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
                 to="/preview" 
                 className={styles.navLinkPreview}
               >

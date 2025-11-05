@@ -1,0 +1,49 @@
+/* Botón Flotante de Edición */
+
+.editButton {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  z-index: 999;
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+.editButton:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+  color: white;
+}
+
+.editButton i {
+  font-size: 1.2rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .editButton {
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}

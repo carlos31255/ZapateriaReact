@@ -25,6 +25,9 @@ import { UnauthorizedPage } from '../pages/UnauthorizedPage';
 import { AdminPage } from '../pages/AdminPage';
 import { AdminProductosPage } from '../pages/AdminProductosPage';
 import { AdminUsuariosPage } from '../pages/AdminUsuariosPage';
+import { AdminEditNosotrosPage } from '../pages/AdminEditNosotrosPage';
+import { AdminBlogPage } from '../pages/AdminBlogPage';
+import { AdminEditBlogPage } from '../pages/AdminEditBlogPage';
 
 // Páginas de vista previa
 import { PreviewProductosPage } from '../pages/PreviewProductosPage';
@@ -162,6 +165,54 @@ export const AppRoutes = () => {
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminUsuariosPage />
+              </RoleRoute>
+            </AdminLayout>
+          } 
+        />
+
+        {/* Edición de página Nosotros - solo administradores */}
+        <Route 
+          path="/admin/nosotros/edit" 
+          element={
+            <AdminLayout>
+              <RoleRoute rolesPermitidos={['administrador']}>
+                <AdminEditNosotrosPage />
+              </RoleRoute>
+            </AdminLayout>
+          } 
+        />
+
+        {/* Gestión de blog - solo administradores */}
+        <Route 
+          path="/admin/blog" 
+          element={
+            <AdminLayout>
+              <RoleRoute rolesPermitidos={['administrador']}>
+                <AdminBlogPage />
+              </RoleRoute>
+            </AdminLayout>
+          } 
+        />
+
+        {/* Crear entrada de blog - solo administradores */}
+        <Route 
+          path="/admin/blog/new" 
+          element={
+            <AdminLayout>
+              <RoleRoute rolesPermitidos={['administrador']}>
+                <AdminEditBlogPage />
+              </RoleRoute>
+            </AdminLayout>
+          } 
+        />
+
+        {/* Editar entrada de blog - solo administradores */}
+        <Route 
+          path="/admin/blog/edit/:id" 
+          element={
+            <AdminLayout>
+              <RoleRoute rolesPermitidos={['administrador']}>
+                <AdminEditBlogPage />
               </RoleRoute>
             </AdminLayout>
           } 

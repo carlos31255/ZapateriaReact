@@ -37,6 +37,10 @@
   align-items: center;
   gap: 1.5rem;
   transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  cursor: pointer;
 }
 
 .statCard:hover {
@@ -54,6 +58,15 @@
   font-size: 2rem;
   color: white;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.statCard:hover .statIcon {
+  transform: scale(1.1);
+}
+
+.statContent {
+  flex: 1;
 }
 
 .statContent h3 {
@@ -66,10 +79,22 @@
 }
 
 .statNumber {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+}
+
+.statArrow {
+  font-size: 1.5rem;
+  color: #0d6efd;
+  transition: transform 0.3s ease;
+  opacity: 0;
+}
+
+.statCard:hover .statArrow {
+  opacity: 1;
+  transform: translateX(4px);
 }
 
 /* Section Title */
@@ -154,6 +179,27 @@
 }
 
 /* Responsive */
+@media (max-width: 992px) {
+  .statCard {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .statIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.75rem;
+  }
+
+  .statContent h3 {
+    font-size: 0.85rem;
+  }
+
+  .statNumber {
+    font-size: 1.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .header {
     padding: 2rem;
@@ -178,7 +224,7 @@
   }
 
   .statNumber {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .menuCard {
