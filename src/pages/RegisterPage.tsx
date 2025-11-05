@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useDatabase } from '../context/DatabaseContext';
 import type { DatosRegistro } from '../types';
 import { validarFormularioRegistro, type DatosRegistroValidacion } from '../utils/validations/validations.index';
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
   const { registrarUsuario } = useAuth();
+  const { obtenerUsuarioPorEmail } = useDatabase();
   
   const [formData, setFormData] = useState<DatosRegistro>({
     run: '',
@@ -20,12 +22,13 @@ export const RegisterPage = () => {
     region: '',
     comuna: '',
     direccion: '',
-    telefono: '',
+    telefono: '+56',
     rol: 'cliente'
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
+  const [emailError, setEmailError] = useState(''); // Error específico de email duplicado
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -49,12 +52,23 @@ export const RegisterPage = () => {
     }
 
     setLoading(true);
+    setEmailError(''); // Limpiar error previo de email
 
     try {
       await registrarUsuario(formData);
       navigate('/login');
     } catch (err) {
-      setGeneralError(err instanceof Error ? err.message : 'Error al registrar usuario');
+      const mensajeError = err instanceof Error ? err.message : 'Error al registrar usuario';
+      
+      // Si el error es de email duplicado, mostrarlo específicamente en el campo email
+      if (mensajeError === 'El email ya está registrado') {
+        setEmailError(mensajeError);
+      } else {
+        setGeneralError(mensajeError);
+      }
+      
+      // Scroll al top para que el usuario vea el mensaje de error
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -62,6 +76,53 @@ export const RegisterPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Manejo especial para el teléfono
+    if (name === 'telefono') {
+      // Si está vacío, establecer el prefijo por defecto
+      if (value === '') {
+        setFormData({
+          ...formData,
+          telefono: '+56'
+        });
+        return;
+      }
+      
+      // Asegurar que siempre comience con +56
+      let telefonoFormateado = value;
+      if (!telefonoFormateado.startsWith('+56')) {
+        telefonoFormateado = '+56' + telefonoFormateado.replace(/^\+?56?/, '');
+      }
+      
+      // Eliminar caracteres no numéricos excepto el +
+      telefonoFormateado = '+56' + telefonoFormateado.substring(3).replace(/\D/g, '');
+      
+      // Limitar a +56 + 9 dígitos (formato chileno)
+      if (telefonoFormateado.length > 12) {
+        telefonoFormateado = telefonoFormateado.substring(0, 12);
+      }
+      
+      setFormData({
+        ...formData,
+        telefono: telefonoFormateado
+      });
+      
+      // Limpiar error del campo
+      if (errors[name]) {
+        setErrors({
+          ...errors,
+          [name]: ''
+        });
+      }
+      
+      if (generalError) {
+        setGeneralError('');
+      }
+      
+      return;
+    }
+
+    // Para otros campos
     setFormData({
       ...formData,
       [name]: value
@@ -78,14 +139,55 @@ export const RegisterPage = () => {
     if (generalError) {
       setGeneralError('');
     }
+    
+    // Limpiar error de email duplicado si se está editando el email
+    if (name === 'email' && emailError) {
+      setEmailError('');
+    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name } = e.target;
+    const { name, value } = e.target;
     setTouched({
       ...touched,
       [name]: true
     });
+    
+    // Verificación especial para email: comprobar si ya está registrado
+    if (name === 'email' && value) {
+      // Primero validar formato
+      const validationErrors = validarFormularioRegistro({ ...formData, email: value } as DatosRegistroValidacion);
+      const emailFormatError = validationErrors.find(error => error.field === 'email');
+      
+      if (emailFormatError) {
+        // Si hay error de formato, mostrarlo
+        setErrors({
+          ...errors,
+          email: emailFormatError.message
+        });
+        setEmailError('');
+        return;
+      }
+      
+      // Si el formato es correcto, verificar si está duplicado
+      const usuarioExistente = obtenerUsuarioPorEmail(value);
+      if (usuarioExistente) {
+        setEmailError('El email ya está registrado');
+        setErrors({
+          ...errors,
+          email: ''
+        });
+        return;
+      } else {
+        // Email válido y no duplicado
+        setEmailError('');
+        setErrors({
+          ...errors,
+          email: ''
+        });
+        return;
+      }
+    }
     
     // Validar el formulario completo y encontrar errores del campo actual
     const validationErrors = validarFormularioRegistro(formData as DatosRegistroValidacion);
@@ -200,7 +302,7 @@ export const RegisterPage = () => {
                       {/* Input tipo email con validación */}
                       <input
                         type="email"
-                        className={`form-control ${errors.email ? 'is-invalid' : touched.email && !errors.email ? 'is-valid' : ''}`}
+                        className={`form-control ${errors.email || emailError ? 'is-invalid' : touched.email && !errors.email && !emailError ? 'is-valid' : ''}`}
                         id="email"
                         name="email"
                         value={formData.email}
@@ -215,13 +317,20 @@ export const RegisterPage = () => {
                           {errors.email}
                         </div>
                       )}
+                      {/* Mensaje de error de email duplicado */}
+                      {emailError && !errors.email && (
+                        <div className="invalid-feedback d-block">
+                          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                          {emailError}
+                        </div>
+                      )}
                     </div>
                     {/* Campo Teléfono */}
                     <div className="col-md-6">
                       <label htmlFor="telefono" className="form-label">
                         Teléfono <span className="text-danger">*</span>
                       </label>
-                      {/* Input tipo tel con validación */}
+                      {/* Input tipo tel con validación y formato chileno */}
                       <input
                         type="tel"
                         className={`form-control ${errors.telefono ? 'is-invalid' : touched.telefono && !errors.telefono ? 'is-valid' : ''}`}
@@ -230,8 +339,18 @@ export const RegisterPage = () => {
                         value={formData.telefono}
                         onChange={handleChange}
                         onBlur={handleBlur}
+                        onFocus={(e) => {
+                          // Si está vacío al hacer foco, agregar +56
+                          if (e.target.value === '' || e.target.value === '+56') {
+                            setFormData({ ...formData, telefono: '+56' });
+                          }
+                        }}
                         required
                         placeholder="+56912345678"
+                        pattern="\+56[0-9]{9}"
+                        title="Formato: +56 seguido de 9 dígitos (ej: +56912345678)"
+                        minLength={12}
+                        maxLength={12}
                       />
                       {/* Mensaje de error del teléfono */}
                       {errors.telefono && (
@@ -239,6 +358,9 @@ export const RegisterPage = () => {
                           {errors.telefono}
                         </div>
                       )}
+                      <small className="text-muted">
+                        Formato: +56 + 9 dígitos (ej: +56912345678)
+                      </small>
                     </div>
                   </div>
 

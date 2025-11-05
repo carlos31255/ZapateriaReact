@@ -1,7 +1,7 @@
 // TIPOS Y INTERFACES PRINCIPALES DE LA APLICACIÓN
 
 // Tipos de roles de usuario disponibles en el sistema
-export type RolUsuario = 'cliente' | 'vendedor' | 'administrador';
+export type RolUsuario = 'cliente' | 'administrador';
 
 // Tipos de categorías de productos
 export type CategoriaProducto = 'hombre' | 'mujer' | 'niños' | 'deportivos';

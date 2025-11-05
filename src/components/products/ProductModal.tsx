@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCart } from '../../context/CartContext';
-import { formatearPrecio } from '../../services/productService';
+import { formatearPrecio } from '../../helpers/productService';
 import type { Producto, TallaCalzado } from '../../types';
 import styles from './ProductModal.module.css';
 
@@ -17,22 +17,34 @@ export const ProductModal = ({ producto, onClose, previewMode = false }: Product
   const [tallaSeleccionada, setTallaSeleccionada] = useState<TallaCalzado | null>(null);
   const [cantidad, setCantidad] = useState(1);
 
+  // Verificar si el producto maneja tallas
+  const manejaTallas = producto.stockPorTalla && producto.stockPorTalla.length > 0;
+  
   // Obtener tallas disponibles (con stock > 0)
-  const tallasDisponibles = producto.stockPorTalla?.filter(t => t.stock > 0) || [];
-  const stockTallaSeleccionada = tallaSeleccionada 
-    ? producto.stockPorTalla?.find(t => t.talla === tallaSeleccionada)?.stock || 0
-    : 0;
+  const tallasDisponibles = manejaTallas 
+    ? producto.stockPorTalla!.filter(t => t.stock > 0) 
+    : [];
+  
+  const stockDisponible = manejaTallas && tallaSeleccionada
+    ? producto.stockPorTalla!.find(t => t.talla === tallaSeleccionada)?.stock || 0
+    : producto.stock;
+
+  // Verificar si el producto tiene stock (considerando productos con y sin tallas)
+  const tieneStock = manejaTallas 
+    ? tallasDisponibles.length > 0 
+    : producto.stock > 0;
 
   const handleAgregarCarrito = async () => {
-    if (!tallaSeleccionada) {
+    // Si maneja tallas, debe seleccionar una
+    if (manejaTallas && !tallaSeleccionada) {
       alert('Por favor selecciona una talla');
       return;
     }
 
     try {
-      // Aquí necesitaremos actualizar el contexto del carrito para manejar tallas
-      await agregarProducto(producto.id, cantidad, tallaSeleccionada);
-      console.log('Producto agregado al carrito con talla:', tallaSeleccionada);
+      // Agregar al carrito con o sin talla según corresponda
+      await agregarProducto(producto.id, cantidad, tallaSeleccionada || undefined);
+      console.log('Producto agregado al carrito', tallaSeleccionada ? `con talla: ${tallaSeleccionada}` : 'sin talla');
       onClose();
     } catch (error) {
       console.error('Error al agregar:', error);
@@ -70,7 +82,7 @@ export const ProductModal = ({ producto, onClose, previewMode = false }: Product
                 Destacado
               </span>
             )}
-            {tallasDisponibles.length === 0 && (
+            {!tieneStock && (
               <div className={styles.outOfStock}>
                 <i className="bi bi-x-circle me-2"></i>
                 Sin Stock
@@ -106,7 +118,7 @@ export const ProductModal = ({ producto, onClose, previewMode = false }: Product
             </div>
 
             {/* Selector de Tallas */}
-            {tallasDisponibles.length > 0 && (
+            {manejaTallas && tieneStock && (
               <div className={styles.sizesSection}>
                 <h3 className={styles.sizesTitle}>
                   <i className="bi bi-rulers me-2"></i>
@@ -128,14 +140,14 @@ export const ProductModal = ({ producto, onClose, previewMode = false }: Product
                 {tallaSeleccionada && (
                   <p className={styles.sizeInfo}>
                     <i className="bi bi-check-circle-fill me-2"></i>
-                    Talla {tallaSeleccionada} seleccionada - {stockTallaSeleccionada} disponibles
+                    Talla {tallaSeleccionada} seleccionada - {stockDisponible} disponibles
                   </p>
                 )}
               </div>
             )}
 
-            {/* Selector de Cantidad */}
-            {tallaSeleccionada && stockTallaSeleccionada > 0 && (
+            {/* Selector de Cantidad - Solo se muestra si hay stock disponible */}
+            {tieneStock && stockDisponible > 0 && (!manejaTallas || tallaSeleccionada) && (
               <div className={styles.quantitySection}>
                 <label className={styles.quantityLabel}>
                   <i className="bi bi-123 me-2"></i>
@@ -153,13 +165,13 @@ export const ProductModal = ({ producto, onClose, previewMode = false }: Product
                     type="number"
                     className={styles.quantityInput}
                     value={cantidad}
-                    onChange={(e) => setCantidad(Math.max(1, Math.min(stockTallaSeleccionada, Number(e.target.value))))}
+                    onChange={(e) => setCantidad(Math.max(1, Math.min(stockDisponible, Number(e.target.value))))}
                     min="1"
-                    max={stockTallaSeleccionada}
+                    max={stockDisponible}
                   />
                   <button
                     className={styles.quantityButton}
-                    onClick={() => setCantidad(Math.min(stockTallaSeleccionada, cantidad + 1))}
+                    onClick={() => setCantidad(Math.min(stockDisponible, cantidad + 1))}
                     type="button"
                   >
                     <i className="bi bi-plus"></i>
@@ -172,23 +184,36 @@ export const ProductModal = ({ producto, onClose, previewMode = false }: Product
             <button
               className={`btn btn-primary btn-lg w-100 ${styles.addButton}`}
               onClick={handleAgregarCarrito}
-              disabled={tallasDisponibles.length === 0 || previewMode || !tallaSeleccionada}
-              title={previewMode ? 'Función deshabilitada en modo vista previa' : !tallaSeleccionada ? 'Selecciona una talla primero' : ''}
+              disabled={!tieneStock || stockDisponible === 0 || previewMode || (manejaTallas && !tallaSeleccionada)}
+              title={
+                previewMode 
+                  ? 'Función deshabilitada en modo vista previa' 
+                  : !tieneStock
+                    ? 'Producto sin stock'
+                  : manejaTallas && !tallaSeleccionada 
+                    ? 'Selecciona una talla primero' 
+                    : ''
+              }
             >
               {previewMode ? (
                 <>
                   <i className="bi bi-eye me-2"></i>
                   Modo Vista Previa - Compra Deshabilitada
                 </>
-              ) : tallasDisponibles.length > 0 ? (
-                <>
-                  <i className="bi bi-cart-plus me-2"></i>
-                  {tallaSeleccionada ? `Agregar al Carrito (${cantidad})` : 'Selecciona una Talla'}
-                </>
-              ) : (
+              ) : !tieneStock || stockDisponible === 0 ? (
                 <>
                   <i className="bi bi-x-circle me-2"></i>
                   Producto Sin Stock
+                </>
+              ) : manejaTallas && !tallaSeleccionada ? (
+                <>
+                  <i className="bi bi-cart-plus me-2"></i>
+                  Selecciona una Talla
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-cart-plus me-2"></i>
+                  Agregar al Carrito ({cantidad})
                 </>
               )}
             </button>

@@ -13,6 +13,9 @@ export const HomePage = () => {
   // Detectar si estamos en modo preview
   const location = useLocation();
   const isPreviewMode = location.pathname.includes('/preview');
+  
+  // Ruta de productos según el modo
+  const productosRoute = isPreviewMode ? '/preview/productos' : '/productos';
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -49,7 +52,7 @@ export const HomePage = () => {
             Diseño, comodidad y estilo en un solo lugar.
           </p>
         </header>
-        <Link to="/productos" className="btn btn-primary btn-lg">
+        <Link to={productosRoute} className="btn btn-primary btn-lg">
           <i className="bi bi-bag me-2"></i>
           Ver Productos
         </Link>
@@ -95,7 +98,7 @@ export const HomePage = () => {
         
         {/* Botón para ver todos los productos */}
         <footer className="text-center mt-4">
-          <Link to="/productos" className="btn btn-outline-primary">
+          <Link to={productosRoute} className="btn btn-outline-primary">
             <i className="bi bi-arrow-right-circle me-2"></i>
             Ver Todos los Productos
           </Link>

@@ -4,11 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Usuario } from '../types';
 import { useUsuarios } from '../hooks';
+import { useDatabase } from '../context/DatabaseContext';
+import { formatearPrecio } from '../helpers/productService';
 
 export const PerfilPage = () => {
-  const { usuario, cerrarSesionUsuario } = useAuth();
+  const { usuario, cerrarSesionUsuario, actualizarSesion } = useAuth();
   const navigate = useNavigate();
   const { fetchUsuarioPorId, fetchActualizarUsuario } = useUsuarios();
+  const { pedidos } = useDatabase();
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -42,7 +45,7 @@ export const PerfilPage = () => {
         setFormData({
           nombre: user.nombre || '',
           email: user.email || '',
-          telefono: user.telefono || '',
+          telefono: user.telefono || '+56',
           genero: user.genero || '',
           fechaNacimiento: user.fechaNacimiento || '',
           region: user.region || '',
@@ -61,6 +64,15 @@ export const PerfilPage = () => {
 
     setError('');
     setSuccess('');
+    
+    // Validar formato del teléfono
+    if (formData.telefono && formData.telefono !== '+56') {
+      if (!/^\+56[0-9]{9}$/.test(formData.telefono)) {
+        setError('El teléfono debe tener el formato +56 seguido de 9 dígitos');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -87,6 +99,9 @@ export const PerfilPage = () => {
       const respuesta = await fetchActualizarUsuario(usuario.id, usuarioActualizado);
       
       if (respuesta.success) {
+        // Actualizar la sesión con los datos frescos
+        await actualizarSesion();
+        
         setSuccess('Perfil actualizado correctamente');
         setEditMode(false);
         // Recargar los datos
@@ -100,9 +115,44 @@ export const PerfilPage = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    // Manejo especial para el teléfono
+    if (name === 'telefono') {
+      // Si está vacío, establecer el prefijo por defecto
+      if (value === '') {
+        setFormData({
+          ...formData,
+          telefono: '+56'
+        });
+        return;
+      }
+      
+      // Asegurar que siempre comience con +56
+      let telefonoFormateado = value;
+      if (!telefonoFormateado.startsWith('+56')) {
+        telefonoFormateado = '+56' + telefonoFormateado.replace(/^\+?56?/, '');
+      }
+      
+      // Eliminar caracteres no numéricos excepto el +
+      telefonoFormateado = '+56' + telefonoFormateado.substring(3).replace(/\D/g, '');
+      
+      // Limitar a +56 + 9 dígitos (formato chileno)
+      if (telefonoFormateado.length > 12) {
+        telefonoFormateado = telefonoFormateado.substring(0, 12);
+      }
+      
+      setFormData({
+        ...formData,
+        telefono: telefonoFormateado
+      });
+      return;
+    }
+    
+    // Para otros campos
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
 
@@ -143,8 +193,7 @@ export const PerfilPage = () => {
                 <h1 className="h2 mb-0">Mi Perfil</h1>
                 {/* Badge dinámico según rol del usuario */}
                 <span className={`badge ${
-                  usuario.rol === 'administrador' ? 'bg-danger' :
-                  usuario.rol === 'vendedor' ? 'bg-warning' : 'bg-primary'
+                  usuario.rol === 'administrador' ? 'bg-danger' : 'bg-primary'
                 }`}>
                   {usuario.rol.toUpperCase()}
                 </span>
@@ -164,6 +213,30 @@ export const PerfilPage = () => {
                   <i className="bi bi-check-circle me-2"></i>
                   {success}
                 </div>
+              )}
+
+              {/* Botones de acción en modo vista (fuera del formulario) */}
+              {!editMode && (
+                <footer className="d-flex gap-2 mb-4">
+                  {/* Botón para activar modo edición */}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setEditMode(true)}
+                  >
+                    <i className="bi bi-pencil-square me-2"></i>
+                    Editar Perfil
+                  </button>
+                  {/* Botón para cerrar sesión */}
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={handleCerrarSesion}
+                  >
+                    <i className="bi bi-box-arrow-right me-2"></i>
+                    Cerrar Sesión
+                  </button>
+                </footer>
               )}
 
               {/* Formulario de edición de perfil */}
@@ -237,7 +310,7 @@ export const PerfilPage = () => {
                       <label htmlFor="telefono" className="form-label">
                         Teléfono
                       </label>
-                      {/* Input editable de teléfono */}
+                      {/* Input editable de teléfono con formato chileno */}
                       <input
                         type="tel"
                         className="form-control"
@@ -245,9 +318,24 @@ export const PerfilPage = () => {
                         name="telefono"
                         value={formData.telefono}
                         onChange={handleChange}
+                        onFocus={(e) => {
+                          // Si está vacío al hacer foco, agregar +56
+                          if (e.target.value === '' || e.target.value === '+56') {
+                            setFormData({ ...formData, telefono: '+56' });
+                          }
+                        }}
+                        placeholder="+56912345678"
+                        pattern="\+56[0-9]{9}"
+                        title="Formato: +56 seguido de 9 dígitos (ej: +56912345678)"
                         disabled={!editMode}
                         required
+                        minLength={12}
+                        maxLength={12}
                       />
+                      <small className="text-muted">
+                        <i className="bi bi-info-circle me-1"></i>
+                        Formato: +56 + 9 dígitos
+                      </small>
                     </div>
                   </div>
 
@@ -404,70 +492,228 @@ export const PerfilPage = () => {
                   </div>
                 </fieldset>
 
-                {/* Footer: Botones de acción según modo (vista/edición) */}
-                <footer className="d-flex gap-2 mt-4">
-                  {/* Modo vista: Botones Editar y Cerrar Sesión */}
-                  {!editMode ? (
-                    <>
-                      {/* Botón para activar modo edición */}
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => setEditMode(true)}
-                      >
-                        <i className="bi bi-pencil-square me-2"></i>
-                        Editar Perfil
-                      </button>
-                      {/* Botón para cerrar sesión */}
-                      <button
-                        type="button"
-                        className="btn btn-danger"
-                        onClick={handleCerrarSesion}
-                      >
-                        <i className="bi bi-box-arrow-right me-2"></i>
-                        Cerrar Sesión
-                      </button>
-                    </>
-                  ) : (
-                    /* Modo edición: Botones Guardar y Cancelar */
-                    <>
-                      {/* Botón submit para guardar cambios */}
-                      <button
-                        type="submit"
-                        className="btn btn-success"
-                        disabled={loading}
-                      >
-                        {/* Muestra spinner cuando está guardando */}
-                        {loading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <i className="bi bi-check-circle me-2"></i>
-                            Guardar Cambios
-                          </>
-                        )}
-                      </button>
-                      {/* Botón para cancelar edición y restaurar datos */}
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => {
-                          setEditMode(false);
-                          cargarDatosUsuario(); // Restaura datos originales
-                          setError('');
-                          setSuccess('');
-                        }}
-                      >
-                        <i className="bi bi-x-circle me-2"></i>
-                        Cancelar
-                      </button>
-                    </>
-                  )}
-                </footer>
+                {/* Footer: Botones de acción en modo edición */}
+                {editMode && (
+                  <footer className="d-flex gap-2 mt-4">
+                    {/* Botón submit para guardar cambios */}
+                    <button
+                      type="submit"
+                      className="btn btn-success"
+                      disabled={loading}
+                    >
+                      {/* Muestra spinner cuando está guardando */}
+                      {loading ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-check-circle me-2"></i>
+                          Guardar Cambios
+                        </>
+                      )}
+                    </button>
+                    {/* Botón para cancelar edición y restaurar datos */}
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setEditMode(false);
+                        cargarDatosUsuario(); // Restaura datos originales
+                        setError('');
+                        setSuccess('');
+                      }}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>
+                      Cancelar
+                    </button>
+                  </footer>
+                )}
               </form>
+            </div>
+          </article>
+
+          {/* SECCIÓN DE MIS PEDIDOS */}
+          <article className="card shadow mt-4">
+            <div className="card-body p-4">
+              <header className="d-flex justify-content-between align-items-center mb-4">
+                <h2 className="h3 mb-0">Mis Pedidos</h2>
+                <span className="badge bg-info">
+                  {pedidos.filter(p => p.usuarioId === usuario.id).length} pedido(s)
+                </span>
+              </header>
+
+              {/* Lista de pedidos del usuario */}
+              {pedidos.filter(p => p.usuarioId === usuario.id).length === 0 ? (
+                <div className="alert alert-info" role="alert">
+                  <i className="bi bi-info-circle me-2"></i>
+                  No has realizado ningún pedido aún.
+                </div>
+              ) : (
+                <div className="accordion" id="accordionPedidos">
+                  {pedidos
+                    .filter(p => p.usuarioId === usuario.id)
+                    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+                    .map((pedido, index) => {
+                      const collapseId = `collapsePedido${index}`;
+                      return (
+                      <div className="accordion-item" key={pedido.id}>
+                        <h2 className="accordion-header" id={`heading${index}`}>
+                          <button
+                            className="accordion-button collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target={`#${collapseId}`}
+                            aria-expanded="false"
+                            aria-controls={collapseId}
+                          >
+                            <div className="d-flex justify-content-between align-items-center w-100 pe-3">
+                              <div>
+                                <strong>Pedido #{pedido.id}</strong>
+                                <small className="text-muted ms-2">
+                                  {new Date(pedido.fecha).toLocaleDateString('es-CL', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </small>
+                              </div>
+                              <div className="d-flex align-items-center gap-3">
+                                <span className={`badge ${
+                                  pedido.estado === 'entregado' ? 'bg-success' :
+                                  pedido.estado === 'cancelado' ? 'bg-danger' :
+                                  pedido.estado === 'enviado' ? 'bg-primary' :
+                                  pedido.estado === 'procesando' ? 'bg-info' :
+                                  'bg-warning text-dark'
+                                }`}>
+                                  {pedido.estado.toUpperCase()}
+                                </span>
+                                <strong className="text-primary">{formatearPrecio(pedido.total)}</strong>
+                              </div>
+                            </div>
+                          </button>
+                        </h2>
+                        <div
+                          id={collapseId}
+                          className="accordion-collapse collapse"
+                          aria-labelledby={`heading${index}`}
+                          data-bs-parent="#accordionPedidos"
+                        >
+                          <div className="accordion-body">
+                            {/* Información del pedido */}
+                            <div className="mb-3">
+                              <h4 className="h6 mb-2">Información del Pedido</h4>
+                              <div className="row g-2">
+                                <div className="col-md-6">
+                                  <small className="text-muted">Estado:</small>
+                                  <p className="mb-0">
+                                    <span className={`badge ${
+                                      pedido.estado === 'entregado' ? 'bg-success' :
+                                      pedido.estado === 'cancelado' ? 'bg-danger' :
+                                      pedido.estado === 'enviado' ? 'bg-primary' :
+                                      pedido.estado === 'procesando' ? 'bg-info' :
+                                      'bg-warning text-dark'
+                                    }`}>
+                                      {pedido.estado.toUpperCase()}
+                                    </span>
+                                  </p>
+                                </div>
+                                <div className="col-md-6">
+                                  <small className="text-muted">Fecha:</small>
+                                  <p className="mb-0">
+                                    {new Date(pedido.fecha).toLocaleDateString('es-CL', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                                {pedido.direccionEnvio && (
+                                  <div className="col-12">
+                                    <small className="text-muted">Dirección de Envío:</small>
+                                    <p className="mb-0">{pedido.direccionEnvio}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Productos del pedido */}
+                            <div className="mb-3">
+                              <h4 className="h6 mb-2">Productos</h4>
+                              <div className="table-responsive">
+                                <table className="table table-sm">
+                                  <thead>
+                                    <tr>
+                                      <th>Producto</th>
+                                      <th>Precio</th>
+                                      <th>Cantidad</th>
+                                      <th>Subtotal</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {pedido.items.map((item, idx) => (
+                                      <tr key={`${item.id}-${idx}`}>
+                                        <td>
+                                          <div className="d-flex align-items-center">
+                                            <img 
+                                              src={item.imagen} 
+                                              alt={item.nombre}
+                                              style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                              className="rounded me-2"
+                                            />
+                                            <div>
+                                              <div>{item.nombre}</div>
+                                              {item.tallaSeleccionada && (
+                                                <small className="text-muted">
+                                                  Talla: {item.tallaSeleccionada}
+                                                </small>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </td>
+                                        <td>{formatearPrecio(item.precio)}</td>
+                                        <td>{item.cantidad}</td>
+                                        <td>{formatearPrecio(item.precio * item.cantidad)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+
+                            {/* Resumen de precios */}
+                            <div className="border-top pt-3">
+                              <div className="row">
+                                <div className="col-md-6 ms-auto">
+                                  <div className="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>{formatearPrecio(pedido.subtotal)}</span>
+                                  </div>
+                                  {pedido.descuento > 0 && (
+                                    <div className="d-flex justify-content-between mb-2 text-success">
+                                      <span>Descuento:</span>
+                                      <span>-{formatearPrecio(pedido.descuento)}</span>
+                                    </div>
+                                  )}
+                                  <div className="d-flex justify-content-between fw-bold border-top pt-2">
+                                    <span>Total:</span>
+                                    <span className="text-primary">{formatearPrecio(pedido.total)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </article>
         </div>

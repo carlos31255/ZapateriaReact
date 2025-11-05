@@ -28,7 +28,7 @@ export const RoleRoute = ({
 
   // Si no está autenticado, redirigir al login
   if (!estaAutenticado || !usuario) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ mensaje: 'Debes iniciar sesión primero' }} />;
   }
 
   // Verificar si el usuario tiene el rol permitido
@@ -40,8 +40,8 @@ export const RoleRoute = ({
     if (usuario.rol === 'administrador') {
       return <Navigate to="/admin" replace />;
     }
-    // Si es cliente/vendedor intentando acceder a rutas de admin, ir a inicio
-    return <Navigate to="/" replace />;
+    // Si es cliente intentando acceder a rutas de admin, ir a unauthorized
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // Si tiene el rol permitido, mostrar el contenido

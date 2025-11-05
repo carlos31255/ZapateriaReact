@@ -1,29 +1,21 @@
 // CONTEXT DE CARRITO DE COMPRAS
+// Gestiona el carrito con useState
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Carrito, TallaCalzado } from '../types';
+import type { Carrito, TallaCalzado, ProductoCarrito } from '../types';
 import { useDatabase } from './DatabaseContext';
-import {
-  axiosObtenerCarrito,
-  axiosAgregarAlCarrito,
-  axiosActualizarCantidad,
-  axiosEliminarDelCarrito,
-  axiosVaciarCarrito
-} from '../services/cartService';
 
 // TIPOS
 
 interface CartContextType {
   carrito: Carrito;
-  cargando: boolean;
-  error: string | null;
-  agregarProducto: (productoId: number, cantidad?: number, talla?: TallaCalzado) => Promise<void>;
-  actualizarCantidad: (productoId: number, cantidad: number) => Promise<void>;
-  eliminarProducto: (productoId: number) => Promise<void>;
-  vaciarCarrito: () => Promise<void>;
-  recargarCarrito: () => Promise<void>;
-  limpiarError: () => void;
+  agregarProducto: (productoId: number, cantidad?: number, talla?: TallaCalzado) => void;
+  actualizarCantidad: (productoId: number, cantidad: number) => void;
+  eliminarProducto: (productoId: number) => void;
+  vaciarCarrito: () => void;
+  obtenerCantidadTotal: () => number;
+  obtenerTotal: () => number;
 }
 
 // CREACIÓN DEL CONTEXT
@@ -37,149 +29,140 @@ interface CartProviderProps {
 }
 
 export const CartProvider = ({ children }: CartProviderProps) => {
-  const { obtenerProductoPorId } = useDatabase(); // Obtener función del DatabaseContext
+  const { obtenerProductoPorId } = useDatabase();
   
-  const [carrito, setCarrito] = useState<Carrito>({
-    items: [],
-    total: 0,
-    cantidadTotal: 0
-  });
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Carga el carrito al montar el componente
-  useEffect(() => {
-    cargarCarrito();
-  }, []);
-
-  // Función para cargar el carrito
-  const cargarCarrito = async () => {
-    try {
-      setCargando(true);
-      const carritoActual = await axiosObtenerCarrito();
-      setCarrito(carritoActual);
-    } catch (err) {
-      console.error('Error al cargar carrito:', err);
-      setError('Error al cargar el carrito');
-    } finally {
-      setCargando(false);
+  // Estado del carrito
+  const [carrito, setCarrito] = useState<Carrito>(() => {
+    // Intentar cargar desde localStorage
+    const saved = localStorage.getItem('carrito');
+    if (saved) {
+      try {
+        const items = JSON.parse(saved);
+        const total = items.reduce((sum: number, item: ProductoCarrito) => sum + (item.precio * item.cantidad), 0);
+        const cantidadTotal = items.reduce((sum: number, item: ProductoCarrito) => sum + item.cantidad, 0);
+        return { items, total, cantidadTotal };
+      } catch {
+        return { items: [], total: 0, cantidadTotal: 0 };
+      }
     }
-  };
+    return { items: [], total: 0, cantidadTotal: 0 };
+  });
+
+  // Sincronizar con localStorage
+  useEffect(() => {
+    localStorage.setItem('carrito', JSON.stringify(carrito.items));
+  }, [carrito]);
 
   // Agrega un producto al carrito
-  const agregarProducto = async (productoId: number, cantidad: number = 1, talla?: TallaCalzado): Promise<void> => {
-    try {
-      setCargando(true);
-      setError(null);
+  const agregarProducto = (productoId: number, cantidad: number = 1, talla?: TallaCalzado): void => {
+    const producto = obtenerProductoPorId(productoId);
+    if (!producto) {
+      console.error('Producto no encontrado');
+      return;
+    }
 
-      const respuesta = await axiosAgregarAlCarrito(productoId, cantidad, talla, obtenerProductoPorId);
+    if (producto.stock < cantidad) {
+      console.error('Stock insuficiente');
+      return;
+    }
 
-      if (respuesta.success && respuesta.data) {
-        setCarrito(respuesta.data);
-      } else {
-        throw new Error(respuesta.error || 'Error al agregar producto');
+    const itemExistente = carrito.items.find(item => item.id === productoId);
+
+    if (itemExistente) {
+      // Actualizar cantidad del item existente
+      const nuevaCantidad = itemExistente.cantidad + cantidad;
+      if (nuevaCantidad > producto.stock) {
+        console.error('Stock insuficiente');
+        return;
       }
-    } catch (err: any) {
-      const mensajeError = err.message || 'Error al agregar producto al carrito';
-      setError(mensajeError);
-      throw new Error(mensajeError);
-    } finally {
-      setCargando(false);
+      
+      const nuevosItems = carrito.items.map(item =>
+        item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item
+      );
+      
+      const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+      const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
+      
+      setCarrito({ items: nuevosItems, total, cantidadTotal });
+    } else {
+      // Agregar nuevo item
+      const nuevoItem: ProductoCarrito = {
+        ...producto,
+        cantidad,
+        tallaSeleccionada: talla
+      };
+      
+      const nuevosItems = [...carrito.items, nuevoItem];
+      const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+      const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
+      
+      setCarrito({ items: nuevosItems, total, cantidadTotal });
     }
   };
 
-  // Actualiza la cantidad de un producto en el carrito
-  const actualizarCantidad = async (productoId: number, cantidad: number): Promise<void> => {
-    try {
-      setCargando(true);
-      setError(null);
-
-      const respuesta = await axiosActualizarCantidad(productoId, cantidad, obtenerProductoPorId);
-
-      if (respuesta.success && respuesta.data) {
-        setCarrito(respuesta.data);
-      } else {
-        throw new Error(respuesta.error || 'Error al actualizar cantidad');
-      }
-    } catch (err: any) {
-      const mensajeError = err.message || 'Error al actualizar la cantidad';
-      setError(mensajeError);
-      throw new Error(mensajeError);
-    } finally {
-      setCargando(false);
+  // Actualiza la cantidad de un producto
+  const actualizarCantidad = (productoId: number, cantidad: number): void => {
+    if (cantidad <= 0) {
+      eliminarProducto(productoId);
+      return;
     }
+
+    const producto = obtenerProductoPorId(productoId);
+    if (!producto || cantidad > producto.stock) {
+      console.error('Stock insuficiente');
+      return;
+    }
+
+    const nuevosItems = carrito.items.map(item =>
+      item.id === productoId ? { ...item, cantidad } : item
+    );
+    
+    const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
+    
+    setCarrito({ items: nuevosItems, total, cantidadTotal });
   };
 
   // Elimina un producto del carrito
-  const eliminarProducto = async (productoId: number): Promise<void> => {
-    try {
-      setCargando(true);
-      setError(null);
-
-      const respuesta = await axiosEliminarDelCarrito(productoId);
-
-      if (respuesta.success && respuesta.data) {
-        setCarrito(respuesta.data);
-      } else {
-        throw new Error(respuesta.error || 'Error al eliminar producto');
-      }
-    } catch (err: any) {
-      const mensajeError = err.message || 'Error al eliminar producto del carrito';
-      setError(mensajeError);
-      throw new Error(mensajeError);
-    } finally {
-      setCargando(false);
-    }
+  const eliminarProducto = (productoId: number): void => {
+    const nuevosItems = carrito.items.filter(item => item.id !== productoId);
+    
+    const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
+    
+    setCarrito({ items: nuevosItems, total, cantidadTotal });
   };
 
-  // Vacía el carrito completamente
-  const vaciarCarrito = async (): Promise<void> => {
-    try {
-      setCargando(true);
-      setError(null);
-
-      const respuesta = await axiosVaciarCarrito();
-
-      if (respuesta.success && respuesta.data) {
-        setCarrito(respuesta.data);
-      } else {
-        throw new Error(respuesta.error || 'Error al vaciar carrito');
-      }
-    } catch (err: any) {
-      const mensajeError = err.message || 'Error al vaciar el carrito';
-      setError(mensajeError);
-      throw new Error(mensajeError);
-    } finally {
-      setCargando(false);
-    }
+  // Vacía el carrito
+  const vaciarCarrito = (): void => {
+    setCarrito({ items: [], total: 0, cantidadTotal: 0 });
   };
 
-  // Recarga el carrito desde localStorage
-  const recargarCarrito = async (): Promise<void> => {
-    await cargarCarrito();
+  // Obtiene la cantidad total de productos
+  const obtenerCantidadTotal = (): number => {
+    return carrito.cantidadTotal;
   };
 
-  // Limpia el error
-  const limpiarError = () => {
-    setError(null);
+  // Obtiene el total del carrito
+  const obtenerTotal = (): number => {
+    return carrito.total;
   };
 
   const value: CartContextType = {
     carrito,
-    cargando,
-    error,
     agregarProducto,
     actualizarCantidad,
     eliminarProducto,
     vaciarCarrito,
-    recargarCarrito,
-    limpiarError
+    obtenerCantidadTotal,
+    obtenerTotal
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
-// Hook para usar el context del carrito
+// HOOK PERSONALIZADO
+
 export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   

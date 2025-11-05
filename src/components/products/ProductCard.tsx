@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Producto } from '../../types';
-import { formatearPrecio } from '../../services/productService';
+import { formatearPrecio } from '../../helpers/productService';
 import { ProductModal } from './ProductModal';
 import styles from './ProductCard.module.css';
 
@@ -14,9 +14,15 @@ interface ProductCardProps {
 export const ProductCard = ({ producto, previewMode = false }: ProductCardProps) => {
   const [showModal, setShowModal] = useState(false);
 
-  // Verificar si hay tallas disponibles con stock
-  const hayStockDisponible = producto.stockPorTalla ? producto.stockPorTalla.some(t => t.stock > 0) : false;
-  const stockTotal = producto.stockPorTalla?.reduce((sum, t) => sum + t.stock, 0) || 0;
+  // Verificar si hay stock disponible
+  // Si tiene stockPorTalla, usar ese; si no, usar stock general
+  const hayStockDisponible = producto.stockPorTalla 
+    ? producto.stockPorTalla.some(t => t.stock > 0)
+    : producto.stock > 0;
+  
+  const stockTotal = producto.stockPorTalla
+    ? producto.stockPorTalla.reduce((sum, t) => sum + t.stock, 0)
+    : producto.stock;
 
   const handleAgregarCarrito = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que abra el modal
@@ -37,7 +43,8 @@ export const ProductCard = ({ producto, previewMode = false }: ProductCardProps)
             src={producto.imagen} 
             alt={producto.nombre}
             className={styles.image}
-            loading="lazy"
+            loading={producto.destacado ? "eager" : "lazy"}
+            fetchPriority={producto.destacado ? "high" : "auto"}
           />
           {producto.destacado && (
             <span className={styles.badge}>Destacado</span>

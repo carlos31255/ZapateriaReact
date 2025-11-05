@@ -8,7 +8,7 @@ import type { FilterState }  from '../components/products/products-components.in
 import type { Producto, CategoriaProducto } from '../types';
 
 export const ProductosPage = () => {
-  const { fetchProductos, fetchProductosPorCategoria, buscarProductos } = useProducts();
+  const { fetchProductos, fetchProductosPorCategoria } = useProducts();
   // Estado de productos filtrados y loading
   const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,13 +63,8 @@ export const ProductosPage = () => {
       setLoading(true);
       let productosResultado: Producto[] = [];
 
-      // Aplicar búsqueda si existe texto
-      if (filtros.busqueda.trim()) {
-        const response = await buscarProductos(filtros.busqueda);
-        if (response.success && response.data) {
-          productosResultado = response.data;
-        }
-      } else if (filtros.categoria !== 'todos') {
+      // Primero obtener productos según categoría
+      if (filtros.categoria !== 'todos') {
         // Filtrar por categoría específica
         const response = await fetchProductosPorCategoria(filtros.categoria);
         if (response.success && response.data) {
@@ -81,6 +76,16 @@ export const ProductosPage = () => {
         if (response.success && response.data) {
           productosResultado = response.data;
         }
+      }
+
+      // Luego aplicar búsqueda sobre los productos filtrados por categoría
+      if (filtros.busqueda.trim()) {
+        const terminoBusqueda = filtros.busqueda.toLowerCase();
+        productosResultado = productosResultado.filter(producto => 
+          producto.nombre.toLowerCase().includes(terminoBusqueda) ||
+          producto.descripcion.toLowerCase().includes(terminoBusqueda) ||
+          producto.categoria.toLowerCase().includes(terminoBusqueda)
+        );
       }
 
       // Aplicar ordenamiento según criterio seleccionado

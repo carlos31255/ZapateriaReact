@@ -108,24 +108,24 @@ export const AppRoutes = () => {
 
         {/* ==================== RUTAS PROTEGIDAS ==================== */}
         
-        {/* Carrito - solo para clientes y vendedores */}
+        {/* Carrito - accesible sin login */}
         <Route 
           path="/carrito" 
           element={
             <Layout>
-              <RoleRoute rolesPermitidos={['cliente', 'vendedor']}>
+              <PublicRoute>
                 <CarritoPage />
-              </RoleRoute>
+              </PublicRoute>
             </Layout>
           } 
         />
 
-        {/* Perfil - solo para clientes y vendedores */}
+        {/* Perfil - solo para clientes */}
         <Route 
           path="/perfil" 
           element={
             <Layout>
-              <RoleRoute rolesPermitidos={['cliente', 'vendedor']}>
+              <RoleRoute rolesPermitidos={['cliente']}>
                 <PerfilPage />
               </RoleRoute>
             </Layout>

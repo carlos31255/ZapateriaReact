@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { validarFormularioLogin } from '../utils/validations/validations.index';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { iniciarSesion } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -17,6 +18,16 @@ export const LoginPage = () => {
   const [generalError, setGeneralError] = useState('');
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Mostrar mensaje si viene de una ruta protegida
+  useEffect(() => {
+    const state = location.state as { mensaje?: string } | null;
+    if (state?.mensaje) {
+      setGeneralError(state.mensaje);
+      // Limpiar el state para que no se muestre al recargar
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -42,8 +53,6 @@ export const LoginPage = () => {
       // Redirigir según el rol del usuario
       if (usuario && usuario.rol === 'administrador') {
         navigate('/admin');
-      } else if (usuario && usuario.rol === 'vendedor') {
-        navigate('/productos');
       } else {
         navigate('/');
       }
@@ -224,19 +233,6 @@ export const LoginPage = () => {
                     </p>
                     <p className="text-muted mb-0">
                       <code>admin@stepstyle.cl</code> / <code>admin123</code>
-                    </p>
-                  </div>
-                  
-                  {/* Cuenta Vendedor */}
-                  <div className="mb-2">
-                    <p className="mb-1">
-                      <strong className="text-warning">
-                        <i className="bi bi-shop me-1"></i>
-                        Vendedor:
-                      </strong>
-                    </p>
-                    <p className="text-muted mb-0">
-                      <code>vendedor@stepstyle.cl</code> / <code>vende123</code>
                     </p>
                   </div>
                   

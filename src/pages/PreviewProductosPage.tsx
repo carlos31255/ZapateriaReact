@@ -1,106 +1,61 @@
 // Página de productos en modo vista previa (sin botón de compra)
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchProductos, fetchProductosPorCategoria, buscarProductos } from '../services/productService';
+import { useDatabase } from '../context/DatabaseContext';
+import { buscarProductos, ordenarPorPrecio } from '../helpers/productService';
 import { ProductList, ProductFilter } from '../components/products/products-components.index';
 import type { FilterState } from '../components/products/products-components.index';
-import type { Producto, CategoriaProducto } from '../types';
+import type { CategoriaProducto } from '../types';
 
 export const PreviewProductosPage = () => {
   const [searchParams] = useSearchParams();
-  const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [categoriaActual, setCategoriaActual] = useState<CategoriaProducto | 'todos'>('todos');
+  const { productos: todosLosProductos } = useDatabase();
+  const [filtros, setFiltros] = useState<FilterState>({
+    categoria: 'todos',
+    busqueda: '',
+    ordenar: 'recientes'
+  });
 
-  // Cargar productos al montar
+  // Actualizar filtros desde URL al montar
   useEffect(() => {
     const categoria = searchParams.get('categoria');
     if (categoria && categoria !== 'todos') {
-      setCategoriaActual(categoria as CategoriaProducto);
-      cargarProductosPorCategoria(categoria);
-    } else {
-      setCategoriaActual('todos');
-      cargarProductos();
+      setFiltros(prev => ({ ...prev, categoria: categoria as CategoriaProducto | 'todos' }));
     }
   }, [searchParams]);
 
-  const cargarProductos = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchProductos();
-      if (response.success && response.data) {
-        setProductosFiltrados(response.data);
-      }
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
-    } finally {
-      setLoading(false);
+  // Filtrar y ordenar productos
+  const productosFiltrados = useMemo(() => {
+    let resultado = [...todosLosProductos];
+
+    // Filtrar por búsqueda
+    if (filtros.busqueda.trim()) {
+      resultado = buscarProductos(resultado, filtros.busqueda);
     }
-  };
 
-  const cargarProductosPorCategoria = async (categoria: string) => {
-    try {
-      setLoading(true);
-      const response = await fetchProductosPorCategoria(categoria as CategoriaProducto);
-      if (response.success && response.data) {
-        setProductosFiltrados(response.data);
-      }
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
-    } finally {
-      setLoading(false);
+    // Filtrar por categoría
+    if (filtros.categoria !== 'todos') {
+      resultado = resultado.filter(p => p.categoria === filtros.categoria);
     }
-  };
 
-  const handleFilterChange = async (filtros: FilterState) => {
-    try {
-      setLoading(true);
-      let productosResultado: Producto[] = [];
-
-      if (filtros.busqueda.trim()) {
-        const response = await buscarProductos(filtros.busqueda);
-        if (response.success && response.data) {
-          productosResultado = response.data;
-        }
-      } else if (filtros.categoria !== 'todos') {
-        const response = await fetchProductosPorCategoria(filtros.categoria);
-        if (response.success && response.data) {
-          productosResultado = response.data;
-        }
-      } else {
-        const response = await fetchProductos();
-        if (response.success && response.data) {
-          productosResultado = response.data;
-        }
-      }
-
-      productosResultado = ordenarProductos(productosResultado, filtros.ordenar);
-      setProductosFiltrados(productosResultado);
-    } catch (error) {
-      console.error('Error al filtrar productos:', error);
-    } finally {
-      setLoading(false);
+    // Ordenar según criterio seleccionado
+    if (filtros.ordenar === 'precio-asc') {
+      resultado = ordenarPorPrecio(resultado, 'asc');
+    } else if (filtros.ordenar === 'precio-desc') {
+      resultado = ordenarPorPrecio(resultado, 'desc');
+    } else if (filtros.ordenar === 'nombre') {
+      resultado = resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    } else {
+      // recientes: ordenar por ID descendente (más reciente primero)
+      resultado = resultado.sort((a, b) => b.id - a.id);
     }
-  };
 
-  const ordenarProductos = (
-    productos: Producto[], 
-    ordenar: FilterState['ordenar']
-  ): Producto[] => {
-    const productosOrdenados = [...productos];
+    return resultado;
+  }, [todosLosProductos, filtros]);
 
-    switch (ordenar) {
-      case 'precio-asc':
-        return productosOrdenados.sort((a, b) => a.precio - b.precio);
-      case 'precio-desc':
-        return productosOrdenados.sort((a, b) => b.precio - a.precio);
-      case 'nombre':
-        return productosOrdenados.sort((a, b) => a.nombre.localeCompare(b.nombre));
-      case 'recientes':
-      default:
-        return productosOrdenados.sort((a, b) => b.id - a.id);
-    }
+  const handleFilterChange = (nuevosFiltros: FilterState) => {
+    setFiltros(nuevosFiltros);
   };
 
   return (
@@ -127,7 +82,7 @@ export const PreviewProductosPage = () => {
       <nav aria-label="Filtros de productos">
         <ProductFilter 
           onFilterChange={handleFilterChange} 
-          categoriaInicial={categoriaActual}
+          categoriaInicial={filtros.categoria}
         />
       </nav>
 
@@ -135,13 +90,13 @@ export const PreviewProductosPage = () => {
       <section>
         <ProductList 
           productos={productosFiltrados} 
-          loading={loading}
+          loading={false}
           previewMode={true}
         />
       </section>
 
       {/* Footer: Contador de resultados */}
-      {!loading && productosFiltrados.length > 0 && (
+      {productosFiltrados.length > 0 && (
         <footer className="text-center mt-4">
           <p className="text-muted">
             <i className="bi bi-check-circle me-2"></i>

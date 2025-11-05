@@ -58,7 +58,7 @@ export const AdminUsuariosPage = () => {
         ...usuarioEditando,
         nombre: formData.get('nombre') as string,
         email: formData.get('email') as string,
-        rol: formData.get('rol') as 'cliente' | 'vendedor' | 'administrador',
+        rol: formData.get('rol') as 'cliente' | 'administrador',
       };
 
       await fetchActualizarUsuario(usuarioEditando.id, usuarioActualizado);
@@ -72,8 +72,6 @@ export const AdminUsuariosPage = () => {
     switch (rol) {
       case 'administrador':
         return styles.rolAdmin;
-      case 'vendedor':
-        return styles.rolVendedor;
       default:
         return styles.rolCliente;
     }
@@ -203,7 +201,6 @@ export const AdminUsuariosPage = () => {
                     required
                   >
                     <option value="cliente">Cliente</option>
-                    <option value="vendedor">Vendedor</option>
                     <option value="administrador">Administrador</option>
                   </select>
                 </div>

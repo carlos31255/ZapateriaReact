@@ -20,6 +20,7 @@ interface BlogEntry {
 export const AdminBlogPage = () => {
   const { articulosBlog, fetchArticulos, fetchEliminarArticulo } = useBlog();
   const [entradas, setEntradas] = useState<BlogEntry[]>([]);
+  const [mensaje, setMensaje] = useState<{ tipo: 'success' | 'error', texto: string } | null>(null);
 
   useEffect(() => {
     // Registrar visita a esta página
@@ -34,33 +35,70 @@ export const AdminBlogPage = () => {
     cargarEntradas();
   }, []);
 
-  const cargarEntradas = async () => {
-    // Cargar artículos desde el Context
-    await fetchArticulos();
-    
-    // Mapear artículos del Context a formato compatible
+  // Actualizar entradas cuando cambie articulosBlog del Context
+  useEffect(() => {
     const articulosFormateados = articulosBlog.map(a => ({
       ...a,
       descripcion: a.resumen,
       autor: a.autor || 'StepStyle Team'
     }));
-    
     setEntradas(articulosFormateados);
+  }, [articulosBlog]);
+
+  const cargarEntradas = async () => {
+    // Cargar artículos desde el Context
+    await fetchArticulos();
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta entrada?')) {
-      const result = await fetchEliminarArticulo(id);
-      if (result.success) {
-        await cargarEntradas(); // Recargar la lista
-      } else {
-        alert('Error al eliminar la entrada');
+    // Obtener el título del artículo para el mensaje
+    const entrada = entradas.find(e => e.id === id);
+    const titulo = entrada?.titulo || 'este artículo';
+    
+    if (window.confirm(`¿Estás seguro de que deseas eliminar "${titulo}"?\n\nEsta acción no se puede deshacer.`)) {
+      try {
+        const result = await fetchEliminarArticulo(id);
+        if (result.success) {
+          // Mostrar mensaje de éxito
+          setMensaje({ tipo: 'success', texto: `El artículo "${titulo}" ha sido eliminado correctamente.` });
+          
+          // No es necesario recargar manualmente, el useEffect lo hará automáticamente
+          // al detectar el cambio en articulosBlog
+          
+          // Limpiar mensaje después de 5 segundos
+          setTimeout(() => setMensaje(null), 5000);
+        } else {
+          // Mostrar mensaje de error
+          setMensaje({ tipo: 'error', texto: 'Error al eliminar el artículo. Intenta nuevamente.' });
+          setTimeout(() => setMensaje(null), 5000);
+        }
+      } catch (error) {
+        // Manejar errores inesperados
+        setMensaje({ tipo: 'error', texto: 'Error inesperado al eliminar el artículo.' });
+        setTimeout(() => setMensaje(null), 5000);
       }
     }
   };
 
   return (
     <div className="container py-5">
+      {/* Mensaje de éxito o error */}
+      {mensaje && (
+        <div 
+          className={`alert alert-${mensaje.tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show`} 
+          role="alert"
+        >
+          <i className={`bi bi-${mensaje.tipo === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2`}></i>
+          {mensaje.texto}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setMensaje(null)}
+            aria-label="Close"
+          ></button>
+        </div>
+      )}
+
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>

@@ -8,12 +8,13 @@ import { useDatabase } from './DatabaseContext';
 import {
   validarEmail,
   validarRUT,
-  esMayorDeEdad,
-  getStorageKeys
-} from '../services/authService';
-import { axiosVaciarCarrito } from '../services/cartService';
+  esMayorDeEdad
+} from '../helpers/authService';
 
-const STORAGE_KEYS = getStorageKeys();
+// Claves de localStorage
+const STORAGE_KEYS = {
+  USUARIO_ACTUAL: 'usuario'
+};
 
 // TIPOS
 
@@ -25,6 +26,7 @@ interface AuthContextType {
   iniciarSesion: (credenciales: CredencialesLogin) => Promise<UsuarioAutenticado | null>;
   registrarUsuario: (datos: DatosRegistro) => Promise<void>;
   cerrarSesionUsuario: () => Promise<void>;
+  actualizarSesion: () => Promise<void>;
   limpiarError: () => void;
 }
 
@@ -133,15 +135,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       setUsuario(usuarioAutenticado);
 
-      // Si el usuario es administrador, vaciar el carrito automáticamente
-      if (usuarioAutenticado.rol === 'administrador') {
-        try {
-          await axiosVaciarCarrito();
-          console.log('Carrito vaciado automáticamente para usuario administrador');
-        } catch (error) {
-          console.error('Error al vaciar carrito:', error);
-        }
-      }
+      // Nota: El carrito se maneja en CartContext
+      // Si se necesita vaciar el carrito para admins, hacerlo desde el componente
 
       return usuarioAutenticado;
     } catch (err: any) {
@@ -254,6 +249,48 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Actualiza la sesión del usuario con datos frescos de la base de datos
+  const actualizarSesion = async (): Promise<void> => {
+    try {
+      if (!usuario) {
+        throw new Error('No hay usuario logueado');
+      }
+
+      // Obtener datos actualizados del usuario desde la base de datos
+      const usuarioActualizado = obtenerUsuarioPorEmail(usuario.email);
+
+      if (!usuarioActualizado) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      // Crear usuario autenticado actualizado (sin contraseña)
+      const usuarioAutenticadoActualizado: UsuarioAutenticado = {
+        id: usuarioActualizado.id,
+        run: usuarioActualizado.run,
+        nombre: usuarioActualizado.nombre,
+        email: usuarioActualizado.email,
+        rol: usuarioActualizado.rol,
+        genero: usuarioActualizado.genero,
+        fechaNacimiento: usuarioActualizado.fechaNacimiento,
+        region: usuarioActualizado.region,
+        comuna: usuarioActualizado.comuna,
+        direccion: usuarioActualizado.direccion,
+        telefono: usuarioActualizado.telefono,
+        fechaRegistro: usuarioActualizado.fechaRegistro,
+        logueado: true
+      };
+
+      // Actualizar localStorage
+      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticadoActualizado));
+
+      // Actualizar estado
+      setUsuario(usuarioAutenticadoActualizado);
+    } catch (err) {
+      console.error('Error al actualizar sesión:', err);
+      throw err;
+    }
+  };
+
   // Limpia el error
   const limpiarError = () => {
     setError(null);
@@ -267,6 +304,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     iniciarSesion,
     registrarUsuario,
     cerrarSesionUsuario,
+    actualizarSesion,
     limpiarError
   };
 

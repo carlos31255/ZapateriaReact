@@ -3,7 +3,7 @@
 
 import type { ProductoCarrito } from '../../types';
 import { useCart } from '../../context/CartContext';
-import { formatearPrecio } from '../../services/productService';
+import { formatearPrecio } from '../../helpers/productService';
 import styles from './CartItem.module.css';
 
 interface CartItemProps {

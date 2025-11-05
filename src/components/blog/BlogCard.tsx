@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ArticuloBlog } from '../../types';
-import { formatearFecha } from '../../services/blogService';
+import { formatearFecha } from '../../helpers/blogService';
 import { BlogModal } from './BlogModal';
 import styles from './BlogCard.module.css';
 

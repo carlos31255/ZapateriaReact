@@ -1,7 +1,7 @@
 // Modal flotante para mostrar artículo completo del blog
 
 import type { ArticuloBlog } from '../../types';
-import { formatearFecha } from '../../services/blogService';
+import { formatearFecha } from '../../helpers/blogService';
 import styles from './BlogModal.module.css';
 
 interface BlogModalProps {
