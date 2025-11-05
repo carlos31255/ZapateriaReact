@@ -11,6 +11,7 @@ import {
   obtenerUsuarioActual,
   estaAutenticado as verificarAutenticacion
 } from '../services/authService';
+import { axiosVaciarCarrito } from '../services/cartService';
 
 // TIPOS
 
@@ -70,6 +71,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (respuesta.success && respuesta.usuario) {
         setUsuario(respuesta.usuario);
+        
+        // Si el usuario es administrador, vaciar el carrito automáticamente
+        if (respuesta.usuario.rol === 'administrador') {
+          try {
+            await axiosVaciarCarrito();
+            console.log('Carrito vaciado automáticamente para usuario administrador');
+          } catch (error) {
+            console.error('Error al vaciar carrito:', error);
+          }
+        }
+        
         return respuesta.usuario;
       } else {
         // Si el login falló, lanzar error

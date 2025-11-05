@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ProductCard } from '../components/products/products-components.index';
 import { fetchProductos } from '../services/productService';
 import type { Producto } from '../types';
@@ -8,6 +8,10 @@ export const HomePage = () => {
   // Estado para productos destacados y carga
   const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Detectar si estamos en modo preview
+  const location = useLocation();
+  const isPreviewMode = location.pathname.includes('/preview');
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -82,7 +86,7 @@ export const HomePage = () => {
           <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
             {productosDestacados.map((producto) => (
               <div key={producto.id} className="col">
-                <ProductCard producto={producto} />
+                <ProductCard producto={producto} previewMode={isPreviewMode} />
               </div>
             ))}
           </div>
