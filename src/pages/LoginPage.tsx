@@ -16,14 +16,16 @@ export const LoginPage = () => {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'warning' | 'error'>('error');
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Mostrar mensaje si viene de una ruta protegida
+  // Mostrar mensaje si viene de una ruta protegida o cierre de sesión
   useEffect(() => {
-    const state = location.state as { mensaje?: string } | null;
+    const state = location.state as { mensaje?: string; tipo?: 'success' | 'warning' | 'error' } | null;
     if (state?.mensaje) {
       setGeneralError(state.mensaje);
+      setMessageType(state.tipo || 'error');
       // Limpiar el state para que no se muestre al recargar
       window.history.replaceState({}, document.title);
     }
@@ -58,6 +60,7 @@ export const LoginPage = () => {
       }
     } catch (err) {
       setGeneralError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+      setMessageType('error');
     } finally {
       setLoading(false);
     }
@@ -119,10 +122,21 @@ export const LoginPage = () => {
                 <p className="text-muted">Accede a tu cuenta</p>
               </header>
               
-              {/* Mensaje de error general (credenciales incorrectas, etc.) */}
+              {/* Mensaje general (puede ser error, warning o success) */}
               {generalError && (
-                <div className="alert alert-danger" role="alert">
-                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                <div 
+                  className={`alert ${
+                    messageType === 'success' ? 'alert-success' : 
+                    messageType === 'warning' ? 'alert-warning' : 
+                    'alert-danger'
+                  }`} 
+                  role="alert"
+                >
+                  <i className={`bi ${
+                    messageType === 'success' ? 'bi-check-circle-fill' : 
+                    messageType === 'warning' ? 'bi-exclamation-circle-fill' : 
+                    'bi-exclamation-triangle-fill'
+                  } me-2`}></i>
                   {generalError}
                 </div>
               )}

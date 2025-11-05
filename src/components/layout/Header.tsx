@@ -1,7 +1,8 @@
 // HEADER PRINCIPAL DE LA APLICACIÓN
 // Navbar responsive con menú de navegación, carrito y autenticación
 
-import { Link, NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import styles from './Header.module.css';
@@ -9,9 +10,29 @@ import styles from './Header.module.css';
 export const Header = () => {
   const { usuario, estaAutenticado, cerrarSesionUsuario } = useAuth();
   const { carrito } = useCart();
+  const navigate = useNavigate();
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const handleLogout = async () => {
     await cerrarSesionUsuario();
+    setMenuAbierto(false); // Cerrar menú al hacer logout
+    
+    // Navegar al login con mensaje de éxito
+    navigate('/login', {
+      state: {
+        mensaje: 'Has cerrado sesión correctamente',
+        tipo: 'success'
+      },
+      replace: true
+    });
+  };
+
+  const toggleMenu = () => {
+    setMenuAbierto(!menuAbierto);
+  };
+
+  const cerrarMenu = () => {
+    setMenuAbierto(false);
   };
 
   return (
@@ -25,10 +46,11 @@ export const Header = () => {
           </Link>
 
           {/* Menú de navegación principal */}
-          <ul className={styles.navMenu}>
+          <ul className={`${styles.navMenu} ${menuAbierto ? styles.navMenuOpen : ''}`}>
             <li>
               <NavLink 
                 to="/" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-house-door"></i>
@@ -38,6 +60,7 @@ export const Header = () => {
             <li>
               <NavLink 
                 to="/productos" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-grid-3x3-gap"></i>
@@ -47,6 +70,7 @@ export const Header = () => {
             <li>
               <NavLink 
                 to="/blog" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-journal-text"></i>
@@ -56,6 +80,7 @@ export const Header = () => {
             <li>
               <NavLink 
                 to="/nosotros" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-info-circle"></i>
@@ -65,6 +90,7 @@ export const Header = () => {
             <li>
               <NavLink 
                 to="/contacto" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-envelope"></i>
@@ -111,21 +137,32 @@ export const Header = () => {
               </div>
             ) : (
               <div className={styles.authButtons}>
-                <Link to="/login" className={styles.loginButton}>
+                <NavLink 
+                  to="/login" 
+                  className={({ isActive }) => isActive ? styles.loginButtonActive : styles.loginButton}
+                >
                   <i className="bi bi-box-arrow-in-right"></i>
                   <span>Ingresar</span>
-                </Link>
-                <Link to="/registro" className={styles.registerButton}>
+                </NavLink>
+                <NavLink 
+                  to="/registro" 
+                  className={({ isActive }) => isActive ? styles.registerButtonActive : styles.registerButton}
+                >
                   <i className="bi bi-person-plus"></i>
                   <span>Registrarse</span>
-                </Link>
+                </NavLink>
               </div>
             )}
           </div>
 
           {/* Botón de menú móvil (hamburguesa) */}
-          <button className={styles.mobileMenuButton} aria-label="Abrir menú">
-            <i className="bi bi-list"></i>
+          <button 
+            className={styles.mobileMenuButton} 
+            onClick={toggleMenu}
+            aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={menuAbierto}
+          >
+            <i className={menuAbierto ? "bi bi-x-lg" : "bi bi-list"}></i>
           </button>
         </div>
       </nav>

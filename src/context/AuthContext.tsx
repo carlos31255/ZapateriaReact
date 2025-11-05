@@ -238,14 +238,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Cierra la sesión del usuario
   const cerrarSesionUsuario = async (): Promise<void> => {
     try {
-      setCargando(true);
       localStorage.removeItem(STORAGE_KEYS.USUARIO_ACTUAL);
       setUsuario(null);
       setError(null);
     } catch (err) {
       console.error('Error al cerrar sesión:', err);
-    } finally {
-      setCargando(false);
     }
   };
 

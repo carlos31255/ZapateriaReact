@@ -24,7 +24,14 @@ export const ProtectedRoute = ({ children, redirectTo = '/login' }: ProtectedRou
 
   // Si no está autenticado, redirigir al login
   if (!estaAutenticado) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate 
+      to={redirectTo} 
+      state={{ 
+        mensaje: 'Debes iniciar sesión para acceder a esta página',
+        tipo: 'warning'
+      }} 
+      replace 
+    />;
   }
 
   // Si está autenticado, mostrar el contenido

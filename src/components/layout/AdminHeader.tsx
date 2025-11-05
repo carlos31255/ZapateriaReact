@@ -1,6 +1,7 @@
 // HEADER PARA PANEL DE ADMINISTRACIÓN
 // Navegación específica para administradores
 
+import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import styles from './AdminHeader.module.css';
@@ -8,10 +9,27 @@ import styles from './AdminHeader.module.css';
 export const AdminHeader = () => {
   const { usuario, cerrarSesionUsuario } = useAuth();
   const navigate = useNavigate();
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const handleLogout = async () => {
     await cerrarSesionUsuario();
-    navigate('/login');
+    
+    // Navegar al login con mensaje de éxito
+    navigate('/login', {
+      state: {
+        mensaje: 'Has cerrado sesión correctamente',
+        tipo: 'success'
+      },
+      replace: true
+    });
+  };
+
+  const toggleMenu = () => {
+    setMenuAbierto(!menuAbierto);
+  };
+
+  const cerrarMenu = () => {
+    setMenuAbierto(false);
   };
 
   return (
@@ -25,11 +43,12 @@ export const AdminHeader = () => {
           </Link>
 
           {/* Menú de navegación del admin */}
-          <ul className={styles.navMenu}>
+          <ul className={`${styles.navMenu} ${menuAbierto ? styles.navMenuOpen : ''}`}>
             <li>
               <NavLink 
                 to="/admin" 
                 end
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-speedometer2"></i>
@@ -39,6 +58,7 @@ export const AdminHeader = () => {
             <li>
               <NavLink 
                 to="/admin/productos" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-box-seam"></i>
@@ -48,6 +68,7 @@ export const AdminHeader = () => {
             <li>
               <NavLink 
                 to="/admin/usuarios" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-people"></i>
@@ -57,6 +78,7 @@ export const AdminHeader = () => {
             <li>
               <NavLink 
                 to="/admin/blog" 
+                onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
               >
                 <i className="bi bi-journal-text"></i>
@@ -66,6 +88,7 @@ export const AdminHeader = () => {
             <li>
               <NavLink 
                 to="/preview" 
+                onClick={cerrarMenu}
                 className={styles.navLinkPreview}
               >
                 <i className="bi bi-eye"></i>
@@ -91,6 +114,16 @@ export const AdminHeader = () => {
               <span>Salir</span>
             </button>
           </div>
+
+          {/* Botón de menú móvil */}
+          <button 
+            className={styles.mobileMenuButton} 
+            onClick={toggleMenu}
+            aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={menuAbierto}
+          >
+            <i className={menuAbierto ? "bi bi-x-lg" : "bi bi-list"}></i>
+          </button>
         </div>
       </nav>
     </header>
