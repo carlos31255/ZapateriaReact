@@ -36,6 +36,14 @@ export const AdminPage = () => {
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
     },
     {
+      title: 'Gestión de Ventas',
+      description: 'Ver y administrar pedidos y ventas realizadas',
+      icon: 'bi-cart-check',
+      link: '/admin/ventas',
+      color: '#43e97b',
+      gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+    },
+    {
       title: 'Gestión de Blog',
       description: 'Crear y editar entradas del blog',
       icon: 'bi-journal-text',
@@ -101,7 +109,7 @@ export const AdminPage = () => {
       {/* Stats Cards - Acceso Rápido a todas las secciones */}
       <div className="row g-4 mb-5">
         {allMenuItems.map((item, index) => (
-          <div key={index} className="col-md-6 col-lg-3">
+          <div key={index} className="col-md-6 col-lg-4">
             <Link 
               to={item.link} 
               className={styles.statCard}
@@ -113,7 +121,11 @@ export const AdminPage = () => {
               <div className={styles.statContent}>
                 <h3>{item.title.replace('Gestión de ', '')}</h3>
                 <p className={styles.statNumber}>
-                  {index === 0 ? 'Ver todos' : index === 1 ? 'Administrar' : index === 2 ? 'Gestionar' : 'Ver tienda'}
+                  {index === 0 ? 'Ver todos' : 
+                   index === 1 ? 'Administrar' : 
+                   index === 2 ? 'Gestionar' : 
+                   index === 3 ? 'Editar entradas' : 
+                   'Ver tienda'}
                 </p>
               </div>
               <div className={styles.statArrow}>

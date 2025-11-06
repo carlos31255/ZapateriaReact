@@ -3,3 +3,4 @@
 export { useProducts } from './useProducts';
 export { useBlog } from './useBlog';
 export { useUsuarios } from './useUsuarios';
+export { usePedidos } from './usePedidos';

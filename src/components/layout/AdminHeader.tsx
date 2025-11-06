@@ -77,6 +77,16 @@ export const AdminHeader = () => {
             </li>
             <li>
               <NavLink 
+                to="/admin/ventas" 
+                onClick={cerrarMenu}
+                className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}
+              >
+                <i className="bi bi-cart-check"></i>
+                <span>Ventas</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
                 to="/admin/blog" 
                 onClick={cerrarMenu}
                 className={({ isActive }) => isActive ? styles.navLinkActive : styles.navLink}

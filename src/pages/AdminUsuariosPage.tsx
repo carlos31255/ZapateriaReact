@@ -287,12 +287,18 @@ export const AdminUsuariosPage = () => {
 
                 <div className={styles.formGroup}>
                   <label htmlFor="region">Región</label>
-                  <input
-                    type="text"
+                  <select
                     id="region"
                     name="region"
-                    defaultValue={usuarioEditando?.region}
-                  />
+                    defaultValue={usuarioEditando?.region || ''}
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="Metropolitana">Región Metropolitana</option>
+                    <option value="Valparaíso">Valparaíso</option>
+                    <option value="Biobío">Biobío</option>
+                    <option value="Araucanía">Araucanía</option>
+                    <option value="Los Lagos">Los Lagos</option>
+                  </select>
                 </div>
 
                 <div className={styles.formGroup}>

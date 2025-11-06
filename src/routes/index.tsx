@@ -28,6 +28,7 @@ import { AdminUsuariosPage } from '../pages/AdminUsuariosPage';
 import { AdminEditNosotrosPage } from '../pages/AdminEditNosotrosPage';
 import { AdminBlogPage } from '../pages/AdminBlogPage';
 import { AdminEditBlogPage } from '../pages/AdminEditBlogPage';
+import { AdminVentasPage } from '../pages/AdminVentasPage';
 
 // Páginas de vista previa
 import { PreviewProductosPage } from '../pages/PreviewProductosPage';
@@ -218,7 +219,19 @@ export const AppRoutes = () => {
           } 
         />
 
-        {/* ==================== RUTAS DE VISTA PREVIA (SOLO LECTURA) ==================== */}
+        {/* Gestión de ventas - solo administradores */}
+        <Route 
+          path="/admin/ventas" 
+          element={
+            <AdminLayout>
+              <RoleRoute rolesPermitidos={['administrador']}>
+                <AdminVentasPage />
+              </RoleRoute>
+            </AdminLayout>
+          } 
+        />
+
+        {/* ==================== RUTAS DE VISTA PREVIA (SOLO LECTURA) ==================== */} 
         
         {/* Página principal preview */}
         <Route 

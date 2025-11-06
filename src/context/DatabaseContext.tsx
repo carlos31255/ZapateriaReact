@@ -55,7 +55,7 @@ interface DatabaseContextType {
 
 // CREACIÓN DEL CONTEXT
 
-const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
+export const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
 
 // PROVIDER DEL CONTEXT
 
