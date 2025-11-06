@@ -5,7 +5,7 @@ import { useProducts } from '../hooks';
 import type { Producto } from '../types';
 
 export const HomePage = () => {
-  const { fetchProductos } = useProducts();
+  const { fetchProductos, productos } = useProducts();
   // Estado para productos destacados y carga
   const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,10 +17,10 @@ export const HomePage = () => {
   // Ruta de productos según el modo
   const productosRoute = isPreviewMode ? '/preview/productos' : '/productos';
 
-  // Cargar productos al montar el componente
+  // Cargar productos al montar el componente o cuando cambien
   useEffect(() => {
     cargarProductosDestacados();
-  }, []);
+  }, [productos]); // Agregar productos como dependencia
 
   // Obtiene productos destacados desde el servicio
   const cargarProductosDestacados = async () => {

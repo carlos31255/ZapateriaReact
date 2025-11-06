@@ -4,7 +4,7 @@ import type { Usuario } from '../types';
 import styles from './AdminUsuariosPage.module.css';
 
 export const AdminUsuariosPage = () => {
-  const { usuarios, fetchUsuarios, fetchEliminarUsuario, fetchActualizarUsuario } = useUsuarios();
+  const { usuarios, fetchUsuarios, fetchEliminarUsuario, fetchActualizarUsuario, fetchCrearUsuario } = useUsuarios();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
 
@@ -58,10 +58,34 @@ export const AdminUsuariosPage = () => {
         ...usuarioEditando,
         nombre: formData.get('nombre') as string,
         email: formData.get('email') as string,
+        run: formData.get('run') as string,
         rol: formData.get('rol') as 'cliente' | 'administrador',
+        genero: formData.get('genero') as string || undefined,
+        fechaNacimiento: formData.get('fechaNacimiento') as string || undefined,
+        region: formData.get('region') as string || undefined,
+        comuna: formData.get('comuna') as string || undefined,
+        direccion: formData.get('direccion') as string || undefined,
+        telefono: formData.get('telefono') as string || undefined,
       };
 
       await fetchActualizarUsuario(usuarioEditando.id, usuarioActualizado);
+    } else {
+      // Crear nuevo usuario
+      const nuevoUsuario: Omit<Usuario, 'id' | 'fechaRegistro'> = {
+        run: formData.get('run') as string,
+        nombre: formData.get('nombre') as string,
+        email: formData.get('email') as string,
+        contrasena: formData.get('contrasena') as string,
+        rol: formData.get('rol') as 'cliente' | 'administrador',
+        genero: formData.get('genero') as string || undefined,
+        fechaNacimiento: formData.get('fechaNacimiento') as string || undefined,
+        region: formData.get('region') as string || undefined,
+        comuna: formData.get('comuna') as string || undefined,
+        direccion: formData.get('direccion') as string || undefined,
+        telefono: formData.get('telefono') as string || undefined,
+      };
+
+      await fetchCrearUsuario(nuevoUsuario);
     }
 
     await cargarUsuarios();
@@ -90,6 +114,13 @@ export const AdminUsuariosPage = () => {
             Administra los usuarios del sistema
           </p>
         </div>
+        <button 
+          onClick={() => abrirModal()}
+          className={styles.addButton}
+        >
+          <i className="bi bi-person-plus me-2"></i>
+          Nuevo Usuario
+        </button>
       </div>
 
       {/* Tabla de usuarios */}
@@ -162,7 +193,7 @@ export const AdminUsuariosPage = () => {
           <div className={styles.overlay} onClick={cerrarModal}></div>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h2>Editar Usuario</h2>
+              <h2>{usuarioEditando ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h2>
               <button onClick={cerrarModal} className={styles.closeButton}>
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -170,6 +201,18 @@ export const AdminUsuariosPage = () => {
 
             <form className={styles.form} onSubmit={handleSubmit}>
               <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="run">RUN *</label>
+                  <input
+                    type="text"
+                    id="run"
+                    name="run"
+                    defaultValue={usuarioEditando?.run}
+                    placeholder="12.345.678-9"
+                    required
+                  />
+                </div>
+
                 <div className={styles.formGroup}>
                   <label htmlFor="nombre">Nombre completo *</label>
                   <input
@@ -189,6 +232,86 @@ export const AdminUsuariosPage = () => {
                     name="email"
                     defaultValue={usuarioEditando?.email}
                     required
+                  />
+                </div>
+
+                {/* Campo contraseña solo para nuevos usuarios */}
+                {!usuarioEditando && (
+                  <div className={styles.formGroup}>
+                    <label htmlFor="contrasena">Contraseña *</label>
+                    <input
+                      type="password"
+                      id="contrasena"
+                      name="contrasena"
+                      placeholder="Mínimo 6 caracteres"
+                      minLength={6}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="genero">Género</label>
+                  <select
+                    id="genero"
+                    name="genero"
+                    defaultValue={usuarioEditando?.genero || ''}
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="fechaNacimiento">Fecha de Nacimiento</label>
+                  <input
+                    type="date"
+                    id="fechaNacimiento"
+                    name="fechaNacimiento"
+                    defaultValue={usuarioEditando?.fechaNacimiento}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="telefono">Teléfono</label>
+                  <input
+                    type="tel"
+                    id="telefono"
+                    name="telefono"
+                    defaultValue={usuarioEditando?.telefono}
+                    placeholder="+56912345678"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="region">Región</label>
+                  <input
+                    type="text"
+                    id="region"
+                    name="region"
+                    defaultValue={usuarioEditando?.region}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="comuna">Comuna</label>
+                  <input
+                    type="text"
+                    id="comuna"
+                    name="comuna"
+                    defaultValue={usuarioEditando?.comuna}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="direccion">Dirección</label>
+                  <input
+                    type="text"
+                    id="direccion"
+                    name="direccion"
+                    defaultValue={usuarioEditando?.direccion}
                   />
                 </div>
 

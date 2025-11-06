@@ -1,14 +1,42 @@
 // Página informativa sobre la empresa StepStyle
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { EditButton } from '../components/admin/EditButton';
+
+interface NosotrosContent {
+  titulo: string;
+  descripcion: string;
+  mision: string;
+  vision: string;
+}
 
 export const NosotrosPage = () => {
   const location = useLocation();
   const isPreviewMode = location.pathname.includes('/preview');
+  
   // Estado para controlar qué modal está abierto
   const [activeModal, setActiveModal] = useState<'historia' | 'mision' | 'vision' | 'tecnologia' | null>(null);
+  
+  // Estado para el contenido editable
+  const [content, setContent] = useState<NosotrosContent>({
+    titulo: 'Sobre Nosotros',
+    descripcion: 'En StepStyle, nos dedicamos a ofrecer el mejor calzado para cada ocasión.',
+    mision: 'Proporcionar calzado de alta calidad que combine estilo, comodidad y durabilidad.',
+    vision: 'Ser la tienda de calzado líder en el mercado, reconocida por nuestra excelencia y servicio al cliente.'
+  });
+
+  // Cargar contenido desde localStorage
+  useEffect(() => {
+    const savedContent = localStorage.getItem('nosotros_content');
+    if (savedContent) {
+      try {
+        setContent(JSON.parse(savedContent));
+      } catch (error) {
+        console.error('Error al cargar contenido de Nosotros:', error);
+      }
+    }
+  }, []);
 
   // Función para cerrar modal
   const closeModal = () => setActiveModal(null);
@@ -27,7 +55,7 @@ export const NosotrosPage = () => {
       {isPreviewMode && (
         <EditButton 
           editPath="/admin/nosotros/edit" 
-          label="Editar Nosotros" 
+          label="Nosotros" 
         />
       )}
 
@@ -35,10 +63,10 @@ export const NosotrosPage = () => {
       <header className="text-center mb-5">
         <h1 className="display-4 fw-bold mb-3">
           <i className="bi bi-shop-window me-3"></i>
-          Sobre StepStyle
+          {content.titulo}
         </h1>
         <p className="lead text-muted">
-          Tu tienda de confianza para calzado de calidad
+          {content.descripcion}
         </p>
         <hr className="w-25 mx-auto mt-4" />
       </header>
@@ -663,8 +691,7 @@ export const NosotrosPage = () => {
                 </div>
                 
                 <p className="text-muted mb-4 lead">
-                  Proporcionar calzado de alta calidad que combine estilo, comodidad y durabilidad,
-                  superando las expectativas de nuestros clientes en cada paso.
+                  {content.mision}
                 </p>
 
                 <h5 className="h6 mb-3">Nuestros Pilares:</h5>
@@ -730,8 +757,7 @@ export const NosotrosPage = () => {
                 </div>
                 
                 <p className="text-muted mb-4 lead">
-                  Ser la tienda de calzado preferida a nivel nacional, reconocida por nuestra
-                  excelencia en productos, servicio al cliente e innovación constante.
+                  {content.vision}
                 </p>
 
                 <h5 className="h6 mb-3">Objetivos a Futuro:</h5>
