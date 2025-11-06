@@ -11,8 +11,8 @@ import { useDatabase } from './DatabaseContext';
 interface CartContextType {
   carrito: Carrito;
   agregarProducto: (productoId: number, cantidad?: number, talla?: TallaCalzado) => void;
-  actualizarCantidad: (productoId: number, cantidad: number) => void;
-  eliminarProducto: (productoId: number) => void;
+  actualizarCantidad: (productoId: number, cantidad: number, talla?: TallaCalzado) => void;
+  eliminarProducto: (productoId: number, talla?: TallaCalzado) => void;
   vaciarCarrito: () => void;
   obtenerCantidadTotal: () => number;
   obtenerTotal: () => number;
@@ -61,23 +61,37 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       return;
     }
 
-    if (producto.stock < cantidad) {
+    // Determinar el stock disponible según si hay talla o no
+    let stockDisponible = producto.stock;
+    if (talla && producto.stockPorTalla) {
+      const stockTalla = producto.stockPorTalla.find(st => st.talla === talla);
+      if (stockTalla) {
+        stockDisponible = stockTalla.stock;
+      }
+    }
+
+    if (stockDisponible < cantidad) {
       console.error('Stock insuficiente');
       return;
     }
 
-    const itemExistente = carrito.items.find(item => item.id === productoId);
+    // Buscar item existente con la misma talla
+    const itemExistente = carrito.items.find(item => 
+      item.id === productoId && item.tallaSeleccionada === talla
+    );
 
     if (itemExistente) {
       // Actualizar cantidad del item existente
       const nuevaCantidad = itemExistente.cantidad + cantidad;
-      if (nuevaCantidad > producto.stock) {
+      if (nuevaCantidad > stockDisponible) {
         console.error('Stock insuficiente');
         return;
       }
       
       const nuevosItems = carrito.items.map(item =>
-        item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item
+        item.id === productoId && item.tallaSeleccionada === talla 
+          ? { ...item, cantidad: nuevaCantidad } 
+          : item
       );
       
       const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
@@ -101,20 +115,36 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   };
 
   // Actualiza la cantidad de un producto
-  const actualizarCantidad = (productoId: number, cantidad: number): void => {
+  const actualizarCantidad = (productoId: number, cantidad: number, talla?: TallaCalzado): void => {
     if (cantidad <= 0) {
-      eliminarProducto(productoId);
+      eliminarProducto(productoId, talla);
       return;
     }
 
     const producto = obtenerProductoPorId(productoId);
-    if (!producto || cantidad > producto.stock) {
+    if (!producto) {
+      console.error('Producto no encontrado');
+      return;
+    }
+
+    // Determinar el stock disponible según si hay talla o no
+    let stockDisponible = producto.stock;
+    if (talla && producto.stockPorTalla) {
+      const stockTalla = producto.stockPorTalla.find(st => st.talla === talla);
+      if (stockTalla) {
+        stockDisponible = stockTalla.stock;
+      }
+    }
+
+    if (cantidad > stockDisponible) {
       console.error('Stock insuficiente');
       return;
     }
 
     const nuevosItems = carrito.items.map(item =>
-      item.id === productoId ? { ...item, cantidad } : item
+      item.id === productoId && item.tallaSeleccionada === talla 
+        ? { ...item, cantidad } 
+        : item
     );
     
     const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
@@ -124,8 +154,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   };
 
   // Elimina un producto del carrito
-  const eliminarProducto = (productoId: number): void => {
-    const nuevosItems = carrito.items.filter(item => item.id !== productoId);
+  const eliminarProducto = (productoId: number, talla?: TallaCalzado): void => {
+    const nuevosItems = carrito.items.filter(item => 
+      !(item.id === productoId && item.tallaSeleccionada === talla)
+    );
     
     const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
     const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);

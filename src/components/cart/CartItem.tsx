@@ -15,12 +15,22 @@ export const CartItem = ({ item }: CartItemProps) => {
 
   const handleCantidadChange = async (nuevaCantidad: number) => {
     if (nuevaCantidad < 1) return;
-    if (nuevaCantidad > item.stock) {
-      alert(`Solo hay ${item.stock} unidades disponibles`);
+    
+    // Verificar stock de la talla específica si existe
+    let stockDisponible = item.stock;
+    if (item.tallaSeleccionada && item.stockPorTalla) {
+      const stockTalla = item.stockPorTalla.find(st => st.talla === item.tallaSeleccionada);
+      if (stockTalla) {
+        stockDisponible = stockTalla.stock;
+      }
+    }
+    
+    if (nuevaCantidad > stockDisponible) {
+      alert(`Solo hay ${stockDisponible} unidades disponibles${item.tallaSeleccionada ? ` de la talla ${item.tallaSeleccionada}` : ''}`);
       return;
     }
     try {
-      await actualizarCantidad(item.id, nuevaCantidad);
+      await actualizarCantidad(item.id, nuevaCantidad, item.tallaSeleccionada);
     } catch (error) {
       console.error('Error al actualizar cantidad:', error);
     }
@@ -29,7 +39,7 @@ export const CartItem = ({ item }: CartItemProps) => {
   const handleEliminar = async () => {
     if (confirm('¿Eliminar este producto del carrito?')) {
       try {
-        await eliminarProducto(item.id);
+        await eliminarProducto(item.id, item.tallaSeleccionada);
       } catch (error) {
         console.error('Error al eliminar:', error);
       }

@@ -277,9 +277,49 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     const indice = pedidos.findIndex(p => p.id === id);
     if (indice === -1) return false;
     
+    const pedidoAnterior = pedidos[indice];
     const nuevosPedidos = [...pedidos];
     nuevosPedidos[indice] = { ...nuevosPedidos[indice], ...datosActualizados };
     setPedidos(nuevosPedidos);
+
+    // Si el pedido se está cancelando, reintegrar el stock
+    if (datosActualizados.estado === 'cancelado' && pedidoAnterior.estado !== 'cancelado') {
+      // Reintegrar stock de cada producto en el pedido
+      const nuevosProductos = productos.map(producto => {
+        // Buscar si este producto está en el pedido cancelado
+        const itemPedido = pedidoAnterior.items.find(item => item.id === producto.id);
+        
+        if (itemPedido) {
+          // Reintegrar el stock
+          let nuevoStock = producto.stock + itemPedido.cantidad;
+          
+          // Si hay stock por talla, reintegrar también
+          let nuevoStockPorTalla = producto.stockPorTalla;
+          if (itemPedido.tallaSeleccionada && producto.stockPorTalla) {
+            nuevoStockPorTalla = producto.stockPorTalla.map(st => {
+              if (st.talla === itemPedido.tallaSeleccionada) {
+                return {
+                  ...st,
+                  stock: st.stock + itemPedido.cantidad
+                };
+              }
+              return st;
+            });
+          }
+          
+          return {
+            ...producto,
+            stock: nuevoStock,
+            stockPorTalla: nuevoStockPorTalla
+          };
+        }
+        
+        return producto;
+      });
+      
+      setProductos(nuevosProductos);
+    }
+    
     return true;
   };
 
