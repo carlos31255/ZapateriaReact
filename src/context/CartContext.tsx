@@ -30,7 +30,7 @@ interface CartProviderProps {
 
 export const CartProvider = ({ children }: CartProviderProps) => {
   const { obtenerProductoPorId } = useDatabase();
-  
+
   // Estado del carrito
   const [carrito, setCarrito] = useState<Carrito>(() => {
     // Intentar cargar desde localStorage
@@ -61,12 +61,15 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       return;
     }
 
-    // Determinar el stock disponible según si hay talla o no
+    // Determinar el stock disponible y el idInventario según si hay talla o no
     let stockDisponible = producto.stock;
+    let idInventario: number | undefined;
+
     if (talla && producto.stockPorTalla) {
       const stockTalla = producto.stockPorTalla.find(st => st.talla === talla);
       if (stockTalla) {
         stockDisponible = stockTalla.stock;
+        idInventario = stockTalla.idInventario;
       }
     }
 
@@ -76,7 +79,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
 
     // Buscar item existente con la misma talla
-    const itemExistente = carrito.items.find(item => 
+    const itemExistente = carrito.items.find(item =>
       item.id === productoId && item.tallaSeleccionada === talla
     );
 
@@ -87,29 +90,30 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         console.error('Stock insuficiente');
         return;
       }
-      
+
       const nuevosItems = carrito.items.map(item =>
-        item.id === productoId && item.tallaSeleccionada === talla 
-          ? { ...item, cantidad: nuevaCantidad } 
+        item.id === productoId && item.tallaSeleccionada === talla
+          ? { ...item, cantidad: nuevaCantidad }
           : item
       );
-      
+
       const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
       const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
-      
+
       setCarrito({ items: nuevosItems, total, cantidadTotal });
     } else {
       // Agregar nuevo item
       const nuevoItem: ProductoCarrito = {
         ...producto,
         cantidad,
-        tallaSeleccionada: talla
+        tallaSeleccionada: talla,
+        idInventario // Add idInventario
       };
-      
+
       const nuevosItems = [...carrito.items, nuevoItem];
       const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
       const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
-      
+
       setCarrito({ items: nuevosItems, total, cantidadTotal });
     }
   };
@@ -142,26 +146,26 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     }
 
     const nuevosItems = carrito.items.map(item =>
-      item.id === productoId && item.tallaSeleccionada === talla 
-        ? { ...item, cantidad } 
+      item.id === productoId && item.tallaSeleccionada === talla
+        ? { ...item, cantidad }
         : item
     );
-    
+
     const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
     const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
-    
+
     setCarrito({ items: nuevosItems, total, cantidadTotal });
   };
 
   // Elimina un producto del carrito
   const eliminarProducto = (productoId: number, talla?: TallaCalzado): void => {
-    const nuevosItems = carrito.items.filter(item => 
+    const nuevosItems = carrito.items.filter(item =>
       !(item.id === productoId && item.tallaSeleccionada === talla)
     );
-    
+
     const total = nuevosItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
     const cantidadTotal = nuevosItems.reduce((sum, item) => sum + item.cantidad, 0);
-    
+
     setCarrito({ items: nuevosItems, total, cantidadTotal });
   };
 
@@ -197,10 +201,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
 export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
-  
+
   if (context === undefined) {
     throw new Error('useCart debe ser usado dentro de un CartProvider');
   }
-  
+
   return context;
 };

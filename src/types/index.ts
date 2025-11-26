@@ -1,9 +1,128 @@
 // TIPOS Y INTERFACES PRINCIPALES DE LA APLICACIÓN
 
-// Tipos de roles de usuario disponibles en el sistema
-export type RolUsuario = 'cliente' | 'administrador';
+// ==========================================
+// MODELOS DEL BACKEND
+// ==========================================
 
-// Tipos de categorías de productos
+// GEOGRAFIA SERVICE
+export interface Region {
+  idRegion: number;
+  nombreRegion: string;
+  codigoRegion: string;
+}
+
+export interface Comuna {
+  idComuna: number;
+  nombreComuna: string;
+  region: Region;
+}
+
+export interface Ciudad {
+  idCiudad: number;
+  nombreCiudad: string;
+  comuna: Comuna;
+}
+
+// USUARIO SERVICE
+export interface Rol {
+  idRol: number;
+  nombreRol: string;
+  descripcion: string;
+}
+
+export interface Persona {
+  idPersona: number;
+  nombre: string;
+  apellido: string;
+  rut: string;
+  telefono: string;
+  email: string;
+  idComuna: number;
+  calle: string;
+  numeroPuerta: string;
+  username: string;
+  passHash: string;
+  fechaRegistro: string;
+  estado: string;
+}
+
+export interface UsuarioBackend {
+  idPersona: number;
+  persona: Persona;
+  rol: Rol;
+}
+
+// INVENTARIO SERVICE
+export interface Marca {
+  idMarca: number;
+  nombreMarca: string;
+  descripcion: string;
+  estado: string;
+}
+
+export interface Talla {
+  idTalla: number;
+  numeroTalla: string;
+}
+
+export interface ModeloZapato {
+  idModelo: number;
+  marca: Marca;
+  nombreModelo: string;
+  descripcion: string;
+  precioUnitario: number;
+  imagenUrl: string;
+  estado: string;
+}
+
+export interface Inventario {
+  idInventario: number;
+  modelo: ModeloZapato;
+  talla: Talla;
+  stockActual: number;
+}
+
+// VENTAS SERVICE
+export interface Boleta {
+  idBoleta: number;
+  numeroBoleta: string;
+  fecha: string;
+  idVendedor?: number;
+  idCliente: number;
+  montoTotal: number;
+  estado: string;
+}
+
+export interface DetalleBoleta {
+  idDetalle: number;
+  boleta: Boleta;
+  idInventario: number;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+}
+
+// ENTREGAS SERVICE
+export interface Entrega {
+  idEntrega: number;
+  idBoleta: number;
+  idTransportista?: number;
+  estadoEntrega: string;
+  fechaAsignacion: string;
+  fechaEntrega?: string;
+  observacion?: string;
+  direccionEntrega: string;
+  idComuna: number;
+}
+
+// ==========================================
+// TIPOS DEL FRONTEND (ADAPTADOS O LEGACY)
+// ==========================================
+
+// Tipos de roles de usuario disponibles en el sistema
+export type RolUsuario = 'cliente' | 'administrador' | 'vendedor' | 'transportista';
+
+// Tipos de categorías de productos (Mapeado a Marcas o lógica de negocio)
 export type CategoriaProducto = 'hombre' | 'mujer' | 'niños' | 'deportivos';
 
 // Tallas disponibles de calzado
@@ -13,6 +132,7 @@ export type TallaCalzado = 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45;
 export interface StockTalla {
   talla: TallaCalzado;
   stock: number;
+  idInventario: number; // Added to link with backend
 }
 
 // Estados posibles de un pedido
@@ -22,15 +142,16 @@ export type EstadoPedido = 'pendiente' | 'procesando' | 'enviado' | 'entregado' 
 export type CategoriaBlog = 'tendencias' | 'cuidado' | 'consejos' | 'estilo';
 
 // 
-// INTERFACE DE USUARIO
+// INTERFACE DE USUARIO (FRONTEND)
+// 
 
-// Interfaz que representa un usuario en el sistema
+// Interfaz que representa un usuario en el sistema (Adaptada para compatibilidad)
 export interface Usuario {
   id: string;
   run: string;
   nombre: string;
   email: string;
-  contrasena: string;
+  contrasena?: string;
   rol: RolUsuario;
   genero?: string;
   fechaNacimiento?: string;
@@ -44,6 +165,7 @@ export interface Usuario {
 // Usuario autenticado (sin contraseña)
 export interface UsuarioAutenticado extends Omit<Usuario, 'contrasena'> {
   logueado: boolean;
+  idPersonaBackend?: number; // Reference to backend ID
 }
 
 // Datos para registro de nuevo usuario
@@ -68,11 +190,11 @@ export interface CredencialesLogin {
   contrasena: string;
 }
 
-// INTERFACE DE PRODUCTO
+// INTERFACE DE PRODUCTO (FRONTEND)
 
 // Interfaz que representa un producto en la tienda
 export interface Producto {
-  id: number;
+  id: number; // Maps to idModelo
   nombre: string;
   precio: number;
   imagen: string;
@@ -81,12 +203,14 @@ export interface Producto {
   stock: number; // Stock total (suma de todas las tallas)
   stockPorTalla?: StockTalla[]; // Stock detallado por talla
   destacado?: boolean;
+  marca?: string;
 }
 
 // Producto en el carrito
 export interface ProductoCarrito extends Producto {
   cantidad: number;
   tallaSeleccionada?: TallaCalzado; // Talla seleccionada en el carrito
+  idInventario?: number; // ID especifico del inventario para esa talla
 }
 
 // Filtros para productos
@@ -146,19 +270,19 @@ export interface DatosContacto {
   fecha: string;
 }
 
-// INTERFACE DE REGIONES Y COMUNAS
+// INTERFACE DE REGIONES Y COMUNAS (UI HELPERS)
 
 // Interfaz para comunas
-export interface Comuna {
+export interface ComunaOption {
   value: string;
   label: string;
 }
 
 // Interfaz para regiones
-export interface Region {
+export interface RegionOption {
   value: string;
   label: string;
-  comunas: Comuna[];
+  comunas: ComunaOption[];
 }
 
 // TIPOS DE RESPUESTA DE API
@@ -177,4 +301,5 @@ export interface AuthResponse {
   usuario?: UsuarioAutenticado;
   message?: string;
   error?: string;
+  token?: string;
 }

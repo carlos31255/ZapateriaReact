@@ -3,8 +3,8 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Usuario, UsuarioAutenticado, CredencialesLogin, DatosRegistro } from '../types';
-import { useDatabase } from './DatabaseContext';
+import type { UsuarioAutenticado, CredencialesLogin, DatosRegistro } from '../types';
+import { authService } from '../services/authService';
 import {
   validarEmail,
   validarRUT,
@@ -43,21 +43,15 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const { obtenerUsuarioPorEmail, crearUsuario } = useDatabase();
   const [usuario, setUsuario] = useState<UsuarioAutenticado | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Simula delay de red
-  const simularDelay = (ms: number = 800): Promise<void> => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  };
 
   // Obtiene el usuario actual de localStorage
   const obtenerUsuarioActual = (): UsuarioAutenticado | null => {
     const usuarioStr = localStorage.getItem(STORAGE_KEYS.USUARIO_ACTUAL);
     if (!usuarioStr) return null;
-    
+
     try {
       return JSON.parse(usuarioStr);
     } catch {
@@ -89,10 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setCargando(true);
       setError(null);
 
-      // Simular delay de red
-      await simularDelay();
-
-      // Validaciones
+      // Validaciones básicas
       if (!credenciales.email || !credenciales.contrasena) {
         throw new Error('Email y contraseña son requeridos');
       }
@@ -101,42 +92,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error('Email no válido');
       }
 
-      // Buscar usuario usando DatabaseContext
-      const usuarioEncontrado = obtenerUsuarioPorEmail(credenciales.email);
-
-      if (!usuarioEncontrado) {
-        throw new Error('Usuario no encontrado');
-      }
-
-      // Verificar contraseña
-      if (usuarioEncontrado.contrasena !== credenciales.contrasena) {
-        throw new Error('Contraseña incorrecta');
-      }
-
-      // Crear usuario autenticado (sin contraseña)
-      const usuarioAutenticado: UsuarioAutenticado = {
-        id: usuarioEncontrado.id,
-        run: usuarioEncontrado.run,
-        nombre: usuarioEncontrado.nombre,
-        email: usuarioEncontrado.email,
-        rol: usuarioEncontrado.rol,
-        genero: usuarioEncontrado.genero,
-        fechaNacimiento: usuarioEncontrado.fechaNacimiento,
-        region: usuarioEncontrado.region,
-        comuna: usuarioEncontrado.comuna,
-        direccion: usuarioEncontrado.direccion,
-        telefono: usuarioEncontrado.telefono,
-        fechaRegistro: usuarioEncontrado.fechaRegistro,
-        logueado: true
-      };
+      // Llamada al servicio de autenticación
+      const usuarioAutenticado = await authService.login(credenciales);
 
       // Guardar sesión en localStorage
       localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
 
       setUsuario(usuarioAutenticado);
-
-      // Nota: El carrito se maneja en CartContext
-      // Si se necesita vaciar el carrito para admins, hacerlo desde el componente
 
       return usuarioAutenticado;
     } catch (err: any) {
@@ -153,9 +115,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setCargando(true);
       setError(null);
-
-      // Simular delay de red
-      await simularDelay(1000);
 
       // Validaciones
       if (!datos.nombre || !datos.email || !datos.contrasena || !datos.run) {
@@ -182,50 +141,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error('Debe ser mayor de 18 años para registrarse');
       }
 
-      // Verificar si el email ya existe
-      const usuarioExistente = obtenerUsuarioPorEmail(datos.email);
-      if (usuarioExistente) {
-        throw new Error('El email ya está registrado');
-      }
+      // Llamada al servicio de registro
+      await authService.register(datos);
 
-      // Crear nuevo usuario usando DatabaseContext
-      const nuevoUsuario: Omit<Usuario, 'id' | 'fechaRegistro'> = {
-        run: datos.run,
-        nombre: datos.nombre,
-        email: datos.email,
-        contrasena: datos.contrasena,
-        rol: datos.rol || 'cliente',
-        genero: datos.genero,
-        fechaNacimiento: datos.fechaNacimiento,
-        region: datos.region,
-        comuna: datos.comuna,
-        direccion: datos.direccion,
-        telefono: datos.telefono
-      };
-
-      const usuarioCreado = crearUsuario(nuevoUsuario);
-
-      // Crear usuario autenticado
-      const usuarioAutenticado: UsuarioAutenticado = {
-        id: usuarioCreado.id,
-        run: usuarioCreado.run,
-        nombre: usuarioCreado.nombre,
-        email: usuarioCreado.email,
-        rol: usuarioCreado.rol,
-        genero: usuarioCreado.genero,
-        fechaNacimiento: usuarioCreado.fechaNacimiento,
-        region: usuarioCreado.region,
-        comuna: usuarioCreado.comuna,
-        direccion: usuarioCreado.direccion,
-        telefono: usuarioCreado.telefono,
-        fechaRegistro: usuarioCreado.fechaRegistro,
-        logueado: true
-      };
-
-      // Guardar sesión en localStorage
-      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticado));
-
-      setUsuario(usuarioAutenticado);
     } catch (err: any) {
       const mensajeError = err.message || 'Error al registrar usuario';
       setError(mensajeError);
@@ -246,46 +164,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Actualiza la sesión del usuario con datos frescos de la base de datos
+  // Actualiza la sesión del usuario
   const actualizarSesion = async (): Promise<void> => {
-    try {
-      if (!usuario) {
-        throw new Error('No hay usuario logueado');
-      }
-
-      // Obtener datos actualizados del usuario desde la base de datos
-      const usuarioActualizado = obtenerUsuarioPorEmail(usuario.email);
-
-      if (!usuarioActualizado) {
-        throw new Error('Usuario no encontrado');
-      }
-
-      // Crear usuario autenticado actualizado (sin contraseña)
-      const usuarioAutenticadoActualizado: UsuarioAutenticado = {
-        id: usuarioActualizado.id,
-        run: usuarioActualizado.run,
-        nombre: usuarioActualizado.nombre,
-        email: usuarioActualizado.email,
-        rol: usuarioActualizado.rol,
-        genero: usuarioActualizado.genero,
-        fechaNacimiento: usuarioActualizado.fechaNacimiento,
-        region: usuarioActualizado.region,
-        comuna: usuarioActualizado.comuna,
-        direccion: usuarioActualizado.direccion,
-        telefono: usuarioActualizado.telefono,
-        fechaRegistro: usuarioActualizado.fechaRegistro,
-        logueado: true
-      };
-
-      // Actualizar localStorage
-      localStorage.setItem(STORAGE_KEYS.USUARIO_ACTUAL, JSON.stringify(usuarioAutenticadoActualizado));
-
-      // Actualizar estado
-      setUsuario(usuarioAutenticadoActualizado);
-    } catch (err) {
-      console.error('Error al actualizar sesión:', err);
-      throw err;
-    }
+    // Implementación pendiente o simplificada por ahora
+    // Podría requerir un endpoint de "me" o "refresh token"
+    console.log('Actualizar sesión no implementado completamente');
   };
 
   // Limpia el error
@@ -313,10 +196,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 // Hook para usar el context de autenticación
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   }
-  
+
   return context;
 };

@@ -1,14 +1,14 @@
 // CONTEXT DE BASE DE DATOS
-// Reemplaza localStorage con useState para gestión de datos en memoria
+// Reemplaza localStorage con llamadas a API
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Producto, Usuario, ArticuloBlog, DatosContacto, Pedido } from '../types';
-import { 
-  productosIniciales, 
-  usuariosIniciales, 
-  articulosBlogIniciales 
-} from '../data/database';
+import type { Producto, Usuario, ArticuloBlog, DatosContacto, Pedido, RegionOption, ComunaOption } from '../types';
+import { inventarioService } from '../services/inventarioService';
+import { geografiaService } from '../services/geografiaService';
+import { ventasService } from '../services/ventasService';
+import { entregasService } from '../services/entregasService';
+import { articulosBlogIniciales } from '../data/database'; // Mantener blog mockeado por ahora
 
 // TIPOS
 
@@ -17,19 +17,19 @@ interface DatabaseContextType {
   productos: Producto[];
   setProductos: (productos: Producto[]) => void;
   obtenerProductoPorId: (id: number) => Producto | undefined;
-  crearProducto: (producto: Omit<Producto, 'id'>) => Producto;
-  actualizarProducto: (id: number, datos: Partial<Producto>) => boolean;
-  eliminarProducto: (id: number) => boolean;
-  
-  // Usuarios
+  crearProducto: (producto: Omit<Producto, 'id'>) => Promise<Producto>;
+  actualizarProducto: (id: number, datos: Partial<Producto>) => Promise<boolean>;
+  eliminarProducto: (id: number) => Promise<boolean>;
+
+  // Usuarios (Solo lectura para admin, gestión real en AuthContext)
   usuarios: Usuario[];
   setUsuarios: (usuarios: Usuario[]) => void;
   obtenerUsuarioPorEmail: (email: string) => Usuario | undefined;
   obtenerUsuarioPorId: (id: string) => Usuario | undefined;
-  crearUsuario: (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>) => Usuario;
+  crearUsuario: (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>) => Usuario; // Deprecated, use AuthContext
   actualizarUsuario: (id: string, datos: Partial<Usuario>) => boolean;
   eliminarUsuario: (id: string) => boolean;
-  
+
   // Blog
   articulosBlog: ArticuloBlog[];
   setArticulosBlog: (articulos: ArticuloBlog[]) => void;
@@ -37,20 +37,25 @@ interface DatabaseContextType {
   crearArticuloBlog: (articulo: Omit<ArticuloBlog, 'id'>) => ArticuloBlog;
   actualizarArticuloBlog: (id: number, datos: Partial<ArticuloBlog>) => boolean;
   eliminarArticuloBlog: (id: number) => boolean;
-  
+
   // Contactos
   contactos: DatosContacto[];
   setContactos: (contactos: DatosContacto[]) => void;
   guardarContacto: (contacto: Omit<DatosContacto, 'fecha'>) => DatosContacto;
-  
+
   // Pedidos
   pedidos: Pedido[];
   setPedidos: (pedidos: Pedido[]) => void;
-  crearPedido: (pedido: Omit<Pedido, 'id' | 'fecha'>) => Pedido;
-  actualizarPedido: (id: string, datos: Partial<Pedido>) => boolean;
-  
+  crearPedido: (pedido: Omit<Pedido, 'id' | 'fecha'>) => Promise<Pedido>;
+  actualizarPedido: (id: string, datos: Partial<Pedido>) => Promise<boolean>;
+
+  // Geografía
+  regiones: RegionOption[];
+  comunas: ComunaOption[];
+
   // Utilidades
   resetearDatos: () => void;
+  recargarProductos: () => Promise<void>;
 }
 
 // CREACIÓN DEL CONTEXT
@@ -65,88 +70,102 @@ interface DatabaseProviderProps {
 
 export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   // Estados para cada entidad
-  const [productos, setProductos] = useState<Producto[]>(() => {
-    // Intentar cargar desde localStorage para migración gradual
-    const saved = localStorage.getItem('productos');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return productosIniciales;
-      }
-    }
-    return productosIniciales;
-  });
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]); // Se podría cargar desde backend si hay endpoint
+  const [articulosBlog, setArticulosBlog] = useState<ArticuloBlog[]>(articulosBlogIniciales);
+  const [contactos, setContactos] = useState<DatosContacto[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
 
-  const [usuarios, setUsuarios] = useState<Usuario[]>(() => {
-    const saved = localStorage.getItem('usuarios');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return usuariosIniciales;
-      }
-    }
-    return usuariosIniciales;
-  });
+  const [regiones, setRegiones] = useState<RegionOption[]>([]);
+  const [comunas, setComunas] = useState<ComunaOption[]>([]);
 
-  const [articulosBlog, setArticulosBlog] = useState<ArticuloBlog[]>(() => {
-    const saved = localStorage.getItem('articulosBlog');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return articulosBlogIniciales;
-      }
-    }
-    return articulosBlogIniciales;
-  });
-
-  const [contactos, setContactos] = useState<DatosContacto[]>(() => {
-    const saved = localStorage.getItem('contactos');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  const [pedidos, setPedidos] = useState<Pedido[]>(() => {
-    const saved = localStorage.getItem('pedidos');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  // Sincronizar con localStorage solo para persistencia (opcional)
-  // Puedes comentar estos useEffect si no quieres persistencia
+  // Cargar datos iniciales
   useEffect(() => {
-    localStorage.setItem('productos', JSON.stringify(productos));
-  }, [productos]);
+    cargarDatos();
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-  }, [usuarios]);
+  const cargarDatos = async () => {
+    try {
+      await Promise.all([
+        cargarProductos(),
+        cargarGeografia()
+      ]);
+    } catch (error) {
+      console.error('Error cargando datos iniciales:', error);
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem('articulosBlog', JSON.stringify(articulosBlog));
-  }, [articulosBlog]);
+  const cargarProductos = async () => {
+    try {
+      const inventario = await inventarioService.getAllInventario();
+      // Transformar inventario a formato Producto del frontend
+      // Agrupar por modelo
+      const modelosMap = new Map<number, Producto>();
 
-  useEffect(() => {
-    localStorage.setItem('contactos', JSON.stringify(contactos));
-  }, [contactos]);
+      inventario.forEach(item => {
+        const modelo = item.modelo;
+        if (!modelosMap.has(modelo.idModelo)) {
+          modelosMap.set(modelo.idModelo, {
+            id: modelo.idModelo,
+            nombre: modelo.nombreModelo,
+            precio: modelo.precioUnitario,
+            imagen: modelo.imagenUrl || '/placeholder.jpg',
+            categoria: 'hombre', // TODO: Mapear desde backend o agregar campo
+            descripcion: modelo.descripcion,
+            stock: 0,
+            stockPorTalla: [],
+            marca: modelo.marca.nombreMarca
+          });
+        }
 
-  useEffect(() => {
-    localStorage.setItem('pedidos', JSON.stringify(pedidos));
-  }, [pedidos]);
+        const producto = modelosMap.get(modelo.idModelo)!;
+        producto.stock += item.stockActual;
+        producto.stockPorTalla?.push({
+          talla: parseInt(item.talla.numeroTalla) as any,
+          stock: item.stockActual,
+          idInventario: item.idInventario
+        });
+      });
+
+      setProductos(Array.from(modelosMap.values()));
+    } catch (error) {
+      console.error('Error cargando productos:', error);
+    }
+  };
+
+  const cargarGeografia = async () => {
+    try {
+      const regionesData = await geografiaService.getAllRegiones();
+      const comunasData = await geografiaService.getAllComunas();
+
+      const regionesOptions: RegionOption[] = regionesData.map(r => ({
+        value: r.idRegion.toString(),
+        label: r.nombreRegion,
+        comunas: []
+      }));
+
+      const comunasOptions: ComunaOption[] = comunasData.map(c => ({
+        value: c.idComuna.toString(),
+        label: c.nombreComuna
+      }));
+
+      // Asignar comunas a regiones
+      comunasData.forEach(c => {
+        const regionOpt = regionesOptions.find(r => r.value === c.region.idRegion.toString());
+        if (regionOpt) {
+          regionOpt.comunas.push({
+            value: c.idComuna.toString(),
+            label: c.nombreComuna
+          });
+        }
+      });
+
+      setRegiones(regionesOptions);
+      setComunas(comunasOptions);
+    } catch (error) {
+      console.error('Error cargando geografía:', error);
+    }
+  };
 
   // ==================== FUNCIONES DE PRODUCTOS ====================
 
@@ -154,29 +173,22 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     return productos.find(p => p.id === id);
   };
 
-  const crearProducto = (producto: Omit<Producto, 'id'>): Producto => {
-    const nuevoId = Math.max(0, ...productos.map(p => p.id)) + 1;
-    const nuevoProducto = { ...producto, id: nuevoId };
-    setProductos([...productos, nuevoProducto]);
-    return nuevoProducto;
+  const crearProducto = async (_producto: Omit<Producto, 'id'>): Promise<Producto> => {
+    // Implementación pendiente en backend (InventarioService)
+    console.warn('Crear producto no implementado en backend');
+    return {} as Producto;
   };
 
-  const actualizarProducto = (id: number, datosActualizados: Partial<Producto>): boolean => {
-    const indice = productos.findIndex(p => p.id === id);
-    if (indice === -1) return false;
-    
-    const nuevosProductos = [...productos];
-    nuevosProductos[indice] = { ...nuevosProductos[indice], ...datosActualizados };
-    setProductos(nuevosProductos);
-    return true;
+  const actualizarProducto = async (_id: number, _datosActualizados: Partial<Producto>): Promise<boolean> => {
+    // Implementación pendiente en backend
+    console.warn('Actualizar producto no implementado en backend');
+    return false;
   };
 
-  const eliminarProducto = (id: number): boolean => {
-    const productosFiltrados = productos.filter(p => p.id !== id);
-    if (productos.length === productosFiltrados.length) return false;
-    
-    setProductos(productosFiltrados);
-    return true;
+  const eliminarProducto = async (_id: number): Promise<boolean> => {
+    // Implementación pendiente en backend
+    console.warn('Eliminar producto no implementado en backend');
+    return false;
   };
 
   // ==================== FUNCIONES DE USUARIOS ====================
@@ -189,33 +201,17 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     return usuarios.find(u => u.id === id);
   };
 
-  const crearUsuario = (usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Usuario => {
-    const nuevoId = (Math.max(0, ...usuarios.map(u => parseInt(u.id) || 0)) + 1).toString();
-    const nuevoUsuario: Usuario = {
-      ...usuario,
-      id: nuevoId,
-      fechaRegistro: new Date().toISOString()
-    };
-    setUsuarios([...usuarios, nuevoUsuario]);
-    return nuevoUsuario;
+  const crearUsuario = (_usuario: Omit<Usuario, 'id' | 'fechaRegistro'>): Usuario => {
+    // Legacy support
+    return {} as Usuario;
   };
 
-  const actualizarUsuario = (id: string, datosActualizados: Partial<Usuario>): boolean => {
-    const indice = usuarios.findIndex(u => u.id === id);
-    if (indice === -1) return false;
-    
-    const nuevosUsuarios = [...usuarios];
-    nuevosUsuarios[indice] = { ...nuevosUsuarios[indice], ...datosActualizados };
-    setUsuarios(nuevosUsuarios);
-    return true;
+  const actualizarUsuario = (_id: string, _datosActualizados: Partial<Usuario>): boolean => {
+    return false;
   };
 
-  const eliminarUsuario = (id: string): boolean => {
-    const usuariosFiltrados = usuarios.filter(u => u.id !== id);
-    if (usuarios.length === usuariosFiltrados.length) return false;
-    
-    setUsuarios(usuariosFiltrados);
-    return true;
+  const eliminarUsuario = (_id: string): boolean => {
+    return false;
   };
 
   // ==================== FUNCIONES DE BLOG ====================
@@ -234,7 +230,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   const actualizarArticuloBlog = (id: number, datosActualizados: Partial<ArticuloBlog>): boolean => {
     const indice = articulosBlog.findIndex(a => a.id === id);
     if (indice === -1) return false;
-    
+
     const nuevosArticulos = [...articulosBlog];
     nuevosArticulos[indice] = { ...nuevosArticulos[indice], ...datosActualizados };
     setArticulosBlog(nuevosArticulos);
@@ -244,7 +240,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
   const eliminarArticuloBlog = (id: number): boolean => {
     const articulosFiltrados = articulosBlog.filter(a => a.id !== id);
     if (articulosBlog.length === articulosFiltrados.length) return false;
-    
+
     setArticulosBlog(articulosFiltrados);
     return true;
   };
@@ -259,81 +255,73 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     setContactos([...contactos, nuevoContacto]);
     return nuevoContacto;
   };
-
   // ==================== FUNCIONES DE PEDIDOS ====================
 
-  const crearPedido = (pedido: Omit<Pedido, 'id' | 'fecha'>): Pedido => {
-    const nuevoId = `PED-${Date.now()}`;
-    const nuevoPedido: Pedido = {
-      ...pedido,
-      id: nuevoId,
-      fecha: new Date().toISOString()
-    };
-    setPedidos([...pedidos, nuevoPedido]);
-    return nuevoPedido;
+  const crearPedido = async (pedido: Omit<Pedido, 'id' | 'fecha'>): Promise<Pedido> => {
+    try {
+      // 1. Crear Boleta
+      const nuevaBoleta = await ventasService.createBoleta({
+        idCliente: parseInt(pedido.usuarioId),
+        montoTotal: pedido.total,
+        estado: 'emitida',
+        fecha: new Date().toISOString()
+      });
+
+      // 2. Crear Detalles
+      for (const item of pedido.items) {
+        if (!item.idInventario) {
+          console.warn('Item sin idInventario, saltando:', item);
+          continue;
+        }
+
+        await ventasService.addDetalle({
+          boleta: nuevaBoleta,
+          idInventario: item.idInventario,
+          cantidad: item.cantidad,
+          precioUnitario: item.precio,
+          subtotal: item.precio * item.cantidad
+        });
+      }
+
+      // 3. Crear Entrega (si aplica)
+      if (pedido.direccionEnvio) {
+        const idComunaDefecto = 1;
+
+        await entregasService.createEntrega({
+          idBoleta: nuevaBoleta.idBoleta,
+          direccionEntrega: pedido.direccionEnvio,
+          estadoEntrega: 'pendiente',
+          fechaAsignacion: new Date().toISOString(),
+          idComuna: idComunaDefecto
+        });
+      }
+
+      const nuevoPedido: Pedido = {
+        ...pedido,
+        id: nuevaBoleta.idBoleta.toString(),
+        fecha: nuevaBoleta.fecha
+      };
+      setPedidos([...pedidos, nuevoPedido]);
+      return nuevoPedido;
+    } catch (error) {
+      console.error('Error creando pedido:', error);
+      throw error;
+    }
   };
 
-  const actualizarPedido = (id: string, datosActualizados: Partial<Pedido>): boolean => {
-    const indice = pedidos.findIndex(p => p.id === id);
-    if (indice === -1) return false;
-    
-    const pedidoAnterior = pedidos[indice];
-    const nuevosPedidos = [...pedidos];
-    nuevosPedidos[indice] = { ...nuevosPedidos[indice], ...datosActualizados };
-    setPedidos(nuevosPedidos);
-
-    // Si el pedido se está cancelando, reintegrar el stock
-    if (datosActualizados.estado === 'cancelado' && pedidoAnterior.estado !== 'cancelado') {
-      // Reintegrar stock de cada producto en el pedido
-      const nuevosProductos = productos.map(producto => {
-        // Buscar si este producto está en el pedido cancelado
-        const itemPedido = pedidoAnterior.items.find(item => item.id === producto.id);
-        
-        if (itemPedido) {
-          // Reintegrar el stock
-          let nuevoStock = producto.stock + itemPedido.cantidad;
-          
-          // Si hay stock por talla, reintegrar también
-          let nuevoStockPorTalla = producto.stockPorTalla;
-          if (itemPedido.tallaSeleccionada && producto.stockPorTalla) {
-            nuevoStockPorTalla = producto.stockPorTalla.map(st => {
-              if (st.talla === itemPedido.tallaSeleccionada) {
-                return {
-                  ...st,
-                  stock: st.stock + itemPedido.cantidad
-                };
-              }
-              return st;
-            });
-          }
-          
-          return {
-            ...producto,
-            stock: nuevoStock,
-            stockPorTalla: nuevoStockPorTalla
-          };
-        }
-        
-        return producto;
-      });
-      
-      setProductos(nuevosProductos);
-    }
-    
+  const actualizarPedido = async (_id: string, _datosActualizados: Partial<Pedido>): Promise<boolean> => {
+    // Implementación pendiente
     return true;
   };
 
   // ==================== UTILIDADES ====================
 
   const resetearDatos = () => {
-    setProductos(productosIniciales);
-    setUsuarios(usuariosIniciales);
-    setArticulosBlog(articulosBlogIniciales);
-    setContactos([]);
+    setProductos([]);
+    setUsuarios([]);
     setPedidos([]);
-    
-    // Limpiar localStorage también
     localStorage.clear();
+    cargarDatos();
   };
 
   const value: DatabaseContextType = {
@@ -344,7 +332,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     crearProducto,
     actualizarProducto,
     eliminarProducto,
-    
+
     // Usuarios
     usuarios,
     setUsuarios,
@@ -353,7 +341,7 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     crearUsuario,
     actualizarUsuario,
     eliminarUsuario,
-    
+
     // Blog
     articulosBlog,
     setArticulosBlog,
@@ -361,20 +349,25 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
     crearArticuloBlog,
     actualizarArticuloBlog,
     eliminarArticuloBlog,
-    
+
     // Contactos
     contactos,
     setContactos,
     guardarContacto,
-    
+
     // Pedidos
     pedidos,
     setPedidos,
     crearPedido,
     actualizarPedido,
-    
+
+    // Geografía
+    regiones,
+    comunas,
+
     // Utilidades
-    resetearDatos
+    resetearDatos,
+    recargarProductos: cargarProductos
   };
 
   return <DatabaseContext.Provider value={value}>{children}</DatabaseContext.Provider>;
@@ -384,10 +377,10 @@ export const DatabaseProvider = ({ children }: DatabaseProviderProps) => {
 
 export const useDatabase = (): DatabaseContextType => {
   const context = useContext(DatabaseContext);
-  
+
   if (context === undefined) {
     throw new Error('useDatabase debe ser usado dentro de un DatabaseProvider');
   }
-  
+
   return context;
 };
