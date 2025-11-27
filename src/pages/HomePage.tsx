@@ -1,42 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ProductCard } from '../components/products/products-components.index';
 import { useProducts } from '../hooks';
-import type { Producto } from '../types';
 
 export const HomePage = () => {
-  const { fetchProductos, productos } = useProducts();
-  // Estado para productos destacados y carga
-  const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+  const { productos, loading } = useProducts();
+
   // Detectar si estamos en modo preview
   const location = useLocation();
   const isPreviewMode = location.pathname.includes('/preview');
-  
+
   // Ruta de productos según el modo
   const productosRoute = isPreviewMode ? '/preview/productos' : '/productos';
 
-  // Cargar productos al montar el componente o cuando cambien
-  useEffect(() => {
-    cargarProductosDestacados();
-  }, [productos]); // Agregar productos como dependencia
-
-  // Obtiene productos destacados desde el servicio
-  const cargarProductosDestacados = async () => {
-    try {
-      const response = await fetchProductos();
-      if (response.data) {
-        // Filtrar solo los productos destacados y tomar los primeros 4
-        const destacados = response.data.filter((p: Producto) => p.destacado).slice(0, 4);
-        setProductosDestacados(destacados);
-      }
-    } catch (error) {
-      console.error('Error al cargar productos destacados:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Filtrar productos destacados usando useMemo
+  const productosDestacados = useMemo(() => {
+    return productos.filter(p => p.destacado).slice(0, 4);
+  }, [productos]);
 
   return (
     // Contenedor principal de la página
@@ -95,7 +75,7 @@ export const HomePage = () => {
             ))}
           </div>
         )}
-        
+
         {/* Botón para ver todos los productos */}
         <footer className="text-center mt-4">
           <Link to={productosRoute} className="btn btn-outline-primary">

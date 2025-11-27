@@ -4,11 +4,10 @@ import type { Usuario } from '../types';
 import styles from './AdminUsuariosPage.module.css';
 
 export const AdminUsuariosPage = () => {
-  const { usuarios, fetchUsuarios, fetchEliminarUsuario, fetchActualizarUsuario, fetchCrearUsuario } = useUsuarios();
+  const { usuarios, eliminarUsuario, actualizarUsuario, crearUsuario } = useUsuarios();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
 
-  // Cargar usuarios al iniciar
   useEffect(() => {
     // Registrar visita a esta página
     const link = '/admin/usuarios';
@@ -18,14 +17,7 @@ export const AdminUsuariosPage = () => {
     recentLinks.unshift(link);
     recentLinks = recentLinks.slice(0, 10);
     localStorage.setItem('admin_recent_pages', JSON.stringify(recentLinks));
-
-    cargarUsuarios();
   }, []);
-
-  const cargarUsuarios = async () => {
-    // Los usuarios ya están disponibles en el Context a través del hook
-    await fetchUsuarios();
-  };
 
   const abrirModal = (usuario?: Usuario) => {
     if (usuario) {
@@ -43,8 +35,7 @@ export const AdminUsuariosPage = () => {
 
   const handleEliminar = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-      await fetchEliminarUsuario(id);
-      await cargarUsuarios();
+      await eliminarUsuario(id);
     }
   };
 
@@ -68,7 +59,7 @@ export const AdminUsuariosPage = () => {
         telefono: formData.get('telefono') as string || undefined,
       };
 
-      await fetchActualizarUsuario(usuarioEditando.id, usuarioActualizado);
+      await actualizarUsuario(usuarioEditando.id, usuarioActualizado);
     } else {
       // Crear nuevo usuario
       const nuevoUsuario: Omit<Usuario, 'id' | 'fechaRegistro'> = {
@@ -85,10 +76,9 @@ export const AdminUsuariosPage = () => {
         telefono: formData.get('telefono') as string || undefined,
       };
 
-      await fetchCrearUsuario(nuevoUsuario);
+      await crearUsuario(nuevoUsuario);
     }
 
-    await cargarUsuarios();
     cerrarModal();
   };
 
@@ -114,7 +104,7 @@ export const AdminUsuariosPage = () => {
             Administra los usuarios del sistema
           </p>
         </div>
-        <button 
+        <button
           onClick={() => abrirModal()}
           className={styles.addButton}
         >

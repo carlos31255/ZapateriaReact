@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { useDatabase } from '../../context/DatabaseContext';
+import { usePedidos } from '../../hooks/usePedidos';
+import { useProducts } from '../../hooks/useProducts';
 import { formatearPrecio } from '../../helpers/productService';
 import styles from './CartSummary.module.css';
 
@@ -16,7 +17,8 @@ export const CartSummary = ({ onCheckout }: CartSummaryProps) => {
   const navigate = useNavigate();
   const { carrito, vaciarCarrito } = useCart();
   const { usuario } = useAuth();
-  const { crearPedido, actualizarProducto, obtenerProductoPorId } = useDatabase();
+  const { crearPedido } = usePedidos();
+  const { obtenerProductoPorId, actualizarProducto } = useProducts();
   const [procesando, setProcesando] = useState(false);
 
   const subtotal = carrito.items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
@@ -67,7 +69,7 @@ export const CartSummary = ({ onCheckout }: CartSummaryProps) => {
             t.talla === item.tallaSeleccionada ? { ...t, stock: t.stock - item.cantidad } : t
           );
           const nuevoStockTotal = nuevasStockPorTalla.reduce((sum: number, t) => sum + t.stock, 0);
-          actualizarProducto(item.id, { 
+          actualizarProducto(item.id, {
             stockPorTalla: nuevasStockPorTalla,
             stock: nuevoStockTotal
           });
@@ -84,17 +86,26 @@ export const CartSummary = ({ onCheckout }: CartSummaryProps) => {
       }
 
       // 2. Crear el pedido
-      const nuevoPedido = crearPedido({
+      const nuevoPedido = await crearPedido({
         usuarioId: usuario.id,
-        nombreUsuario: usuario.nombre,
-        emailUsuario: usuario.email,
-        items: carrito.items,
-        subtotal,
-        descuento,
+        productos: carrito.items.map(item => ({
+          productoId: item.id,
+          nombre: item.nombre,
+          cantidad: item.cantidad,
+          precio: item.precio,
+          talla: item.tallaSeleccionada || 0
+        })),
         total,
         estado: 'pendiente',
-        direccionEnvio: usuario.direccion || ''
+        direccionEnvio: usuario.direccion || '',
+        metodoPago: 'Transferencia'
       });
+
+      if (!nuevoPedido) {
+        alert('Error al crear el pedido');
+        setProcesando(false);
+        return;
+      }
 
       // 3. Vaciar el carrito
       vaciarCarrito();
@@ -116,7 +127,7 @@ export const CartSummary = ({ onCheckout }: CartSummaryProps) => {
   return (
     <div className={styles.summary}>
       <h3 className={styles.title}>Resumen del Pedido</h3>
-      
+
       <div className={styles.details}>
         {/* Subtotal */}
         <div className={styles.row}>
@@ -166,7 +177,7 @@ export const CartSummary = ({ onCheckout }: CartSummaryProps) => {
       </div>
 
       {/* Botón */}
-      <button 
+      <button
         className={`btn btn-primary w-100 ${styles.checkoutBtn}`}
         onClick={handleCheckout}
         disabled={carrito.items.length === 0 || procesando}

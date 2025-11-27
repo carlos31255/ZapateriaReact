@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useDatabase } from '../context/DatabaseContext';
+import { useProducts } from '../hooks/useProducts';
 import { buscarProductos, ordenarPorPrecio } from '../helpers/productService';
 import { ProductList, ProductFilter } from '../components/products/products-components.index';
 import type { FilterState } from '../components/products/products-components.index';
@@ -10,7 +10,7 @@ import type { CategoriaProducto } from '../types';
 
 export const PreviewProductosPage = () => {
   const [searchParams] = useSearchParams();
-  const { productos: todosLosProductos } = useDatabase();
+  const { productos: todosLosProductos } = useProducts();
   const [filtros, setFiltros] = useState<FilterState>({
     categoria: 'todos',
     busqueda: '',
@@ -80,16 +80,16 @@ export const PreviewProductosPage = () => {
 
       {/* Sección de filtros */}
       <nav aria-label="Filtros de productos">
-        <ProductFilter 
-          onFilterChange={handleFilterChange} 
+        <ProductFilter
+          onFilterChange={handleFilterChange}
           categoriaInicial={filtros.categoria}
         />
       </nav>
 
       {/* Sección de lista de productos */}
       <section>
-        <ProductList 
-          productos={productosFiltrados} 
+        <ProductList
+          productos={productosFiltrados}
           loading={false}
           previewMode={true}
         />

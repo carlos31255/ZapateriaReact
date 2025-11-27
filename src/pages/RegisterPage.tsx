@@ -2,15 +2,13 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useDatabase } from '../context/DatabaseContext';
 import type { DatosRegistro } from '../types';
 import { validarFormularioRegistro, type DatosRegistroValidacion } from '../utils/validations/validations.index';
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
   const { registrarUsuario } = useAuth();
-  const { obtenerUsuarioPorEmail } = useDatabase();
-  
+
   const [formData, setFormData] = useState<DatosRegistro>({
     run: '',
     nombre: '',
@@ -25,7 +23,7 @@ export const RegisterPage = () => {
     telefono: '+56',
     rol: 'cliente'
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
   const [emailError, setEmailError] = useState(''); // Error específico de email duplicado
@@ -38,14 +36,14 @@ export const RegisterPage = () => {
 
     // Validar todo el formulario
     const validationErrors = validarFormularioRegistro(formData as DatosRegistroValidacion);
-    
+
     if (validationErrors.length > 0) {
       const errorMap: Record<string, string> = {};
       validationErrors.forEach(error => {
         errorMap[error.field] = error.message;
       });
       setErrors(errorMap);
-      
+
       // Mostrar primer error como mensaje general
       setGeneralError('Por favor corrige los errores en el formulario');
       return;
@@ -59,14 +57,14 @@ export const RegisterPage = () => {
       navigate('/login');
     } catch (err) {
       const mensajeError = err instanceof Error ? err.message : 'Error al registrar usuario';
-      
+
       // Si el error es de email duplicado, mostrarlo específicamente en el campo email
       if (mensajeError === 'El email ya está registrado') {
         setEmailError(mensajeError);
       } else {
         setGeneralError(mensajeError);
       }
-      
+
       // Scroll al top para que el usuario vea el mensaje de error
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
@@ -76,7 +74,7 @@ export const RegisterPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // Manejo especial para el teléfono
     if (name === 'telefono') {
       // Si está vacío, establecer el prefijo por defecto
@@ -87,26 +85,26 @@ export const RegisterPage = () => {
         });
         return;
       }
-      
+
       // Asegurar que siempre comience con +56
       let telefonoFormateado = value;
       if (!telefonoFormateado.startsWith('+56')) {
         telefonoFormateado = '+56' + telefonoFormateado.replace(/^\+?56?/, '');
       }
-      
+
       // Eliminar caracteres no numéricos excepto el +
       telefonoFormateado = '+56' + telefonoFormateado.substring(3).replace(/\D/g, '');
-      
+
       // Limitar a +56 + 9 dígitos (formato chileno)
       if (telefonoFormateado.length > 12) {
         telefonoFormateado = telefonoFormateado.substring(0, 12);
       }
-      
+
       setFormData({
         ...formData,
         telefono: telefonoFormateado
       });
-      
+
       // Limpiar error del campo
       if (errors[name]) {
         setErrors({
@@ -114,11 +112,11 @@ export const RegisterPage = () => {
           [name]: ''
         });
       }
-      
+
       if (generalError) {
         setGeneralError('');
       }
-      
+
       return;
     }
 
@@ -127,7 +125,7 @@ export const RegisterPage = () => {
       ...formData,
       [name]: value
     });
-    
+
     // Limpiar error del campo cuando el usuario empieza a escribir
     if (errors[name]) {
       setErrors({
@@ -135,11 +133,11 @@ export const RegisterPage = () => {
         [name]: ''
       });
     }
-    
+
     if (generalError) {
       setGeneralError('');
     }
-    
+
     // Limpiar error de email duplicado si se está editando el email
     if (name === 'email' && emailError) {
       setEmailError('');
@@ -152,34 +150,21 @@ export const RegisterPage = () => {
       ...touched,
       [name]: true
     });
-    
-    // Verificación especial para email: comprobar si ya está registrado
+
+    // Verificación especial para email: validar formato
     if (name === 'email' && value) {
-      // Primero validar formato
       const validationErrors = validarFormularioRegistro({ ...formData, email: value } as DatosRegistroValidacion);
       const emailFormatError = validationErrors.find(error => error.field === 'email');
-      
+
       if (emailFormatError) {
-        // Si hay error de formato, mostrarlo
         setErrors({
           ...errors,
           email: emailFormatError.message
         });
         setEmailError('');
         return;
-      }
-      
-      // Si el formato es correcto, verificar si está duplicado
-      const usuarioExistente = obtenerUsuarioPorEmail(value);
-      if (usuarioExistente) {
-        setEmailError('El email ya está registrado');
-        setErrors({
-          ...errors,
-          email: ''
-        });
-        return;
       } else {
-        // Email válido y no duplicado
+        // Email válido
         setEmailError('');
         setErrors({
           ...errors,
@@ -188,11 +173,11 @@ export const RegisterPage = () => {
         return;
       }
     }
-    
+
     // Validar el formulario completo y encontrar errores del campo actual
     const validationErrors = validarFormularioRegistro(formData as DatosRegistroValidacion);
     const fieldError = validationErrors.find(error => error.field === name);
-    
+
     if (fieldError) {
       setErrors({
         ...errors,
@@ -223,7 +208,7 @@ export const RegisterPage = () => {
                 <h1 className="h2">Crear Cuenta</h1>
                 <p className="text-muted">Completa el formulario para registrarte</p>
               </header>
-              
+
               {/* Mensaje de error general (se muestra si hay error en el submit) */}
               {generalError && (
                 <div className="alert alert-danger" role="alert">
@@ -238,7 +223,7 @@ export const RegisterPage = () => {
                 <fieldset className="mb-4">
                   {/* Título de la sección con borde inferior */}
                   <legend className="h5 mb-3 pb-2 border-bottom">Información Personal</legend>
-                  
+
                   {/* Fila: RUN y Nombre (2 columnas en pantallas medianas) */}
                   <div className="row mb-3">
                     {/* Campo RUN - 6/12 columnas en medium */}

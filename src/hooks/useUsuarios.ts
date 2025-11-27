@@ -1,213 +1,111 @@
-// Custom hook para manejar usuarios usando DatabaseContext
+// Custom hook para manejar usuarios usando servicios directamente
 
-import { useDatabase } from '../context/DatabaseContext';
-import type { Usuario, ApiResponse } from '../types';
-
-// Simula un delay de red
-const simularDelay = (ms: number = 500): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
+import { useState, useEffect } from 'react';
+import { authService } from '../services/authService';
+import type { Usuario } from '../types';
 
 export const useUsuarios = () => {
-  const {
-    usuarios,
-    obtenerUsuarioPorId,
-    obtenerUsuarioPorEmail,
-    crearUsuario,
-    actualizarUsuario,
-    eliminarUsuario
-  } = useDatabase();
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // OPERACIONES DE LECTURA
-
-  // Obtiene todos los usuarios
-  const fetchUsuarios = async (): Promise<ApiResponse<Usuario[]>> => {
+  const cargarUsuarios = async () => {
     try {
-      await simularDelay();
-      
-      return {
-        success: true,
-        data: usuarios,
-        message: 'Usuarios obtenidos exitosamente'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al obtener usuarios'
-      };
+      setLoading(true);
+      setError(null);
+      const usuariosBackend = await authService.getAllUsuarios();
+
+      // Mapear usuarios del backend al formato frontend
+      const usuariosMapeados: Usuario[] = usuariosBackend.map(u => ({
+        id: u.idPersona.toString(),
+        run: u.persona.rut,
+        nombre: `${u.persona.nombre} ${u.persona.apellido}`,
+        email: u.persona.email,
+        rol: u.rol.nombreRol.toLowerCase() as any,
+        genero: '',
+        fechaNacimiento: '',
+        region: '',
+        comuna: u.persona.idComuna?.toString() || '',
+        direccion: `${u.persona.calle || ''} ${u.persona.numeroPuerta || ''}`.trim(),
+        telefono: u.persona.telefono,
+        fechaRegistro: u.persona.fechaRegistro
+      }));
+
+      setUsuarios(usuariosMapeados);
+    } catch (err) {
+      console.error('Error cargando usuarios:', err);
+      setError('Error al cargar usuarios');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Obtiene un usuario por ID
-  const fetchUsuarioPorId = async (id: string): Promise<ApiResponse<Usuario>> => {
+  useEffect(() => {
+    cargarUsuarios();
+  }, []);
+
+  const obtenerUsuarioPorEmail = (email: string): Usuario | undefined => {
+    return usuarios.find(u => u.email === email);
+  };
+
+  const obtenerUsuarioPorId = (id: string): Usuario | undefined => {
+    return usuarios.find(u => u.id === id);
+  };
+
+  const actualizarUsuario = async (id: string, datos: Partial<Usuario>): Promise<boolean> => {
     try {
-      await simularDelay(300);
-      
-      const usuario = obtenerUsuarioPorId(id);
-      
-      if (!usuario) {
-        return {
-          success: false,
-          error: 'Usuario no encontrado'
-        };
-      }
-      
-      return {
-        success: true,
-        data: usuario
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al obtener usuario'
-      };
+      await authService.updateUsuario(parseInt(id), {
+        persona: {
+          nombre: datos.nombre?.split(' ')[0],
+          apellido: datos.nombre?.split(' ').slice(1).join(' '),
+          telefono: datos.telefono,
+          calle: datos.direccion
+        } as any
+      });
+      await cargarUsuarios();
+      return true;
+    } catch (err) {
+      console.error('Error actualizando usuario:', err);
+      return false;
     }
   };
 
-  // Obtiene un usuario por email
-  const fetchUsuarioPorEmail = async (email: string): Promise<ApiResponse<Usuario>> => {
+  const eliminarUsuario = async (id: string): Promise<boolean> => {
     try {
-      await simularDelay(300);
-      
-      const usuario = obtenerUsuarioPorEmail(email);
-      
-      if (!usuario) {
-        return {
-          success: false,
-          error: 'Usuario no encontrado'
-        };
-      }
-      
-      return {
-        success: true,
-        data: usuario
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al obtener usuario'
-      };
+      await authService.deleteUsuario(parseInt(id));
+      await cargarUsuarios();
+      return true;
+    } catch (err) {
+      console.error('Error eliminando usuario:', err);
+      return false;
     }
   };
 
-  // OPERACIONES DE ESCRITURA
-
-  // Crea un nuevo usuario
-  const fetchCrearUsuario = async (
-    usuario: Omit<Usuario, 'id' | 'fechaRegistro'>
-  ): Promise<ApiResponse<Usuario>> => {
+  const crearUsuario = async (datos: Partial<Usuario>): Promise<Usuario | null> => {
     try {
-      await simularDelay(800);
-      
-      // Validaciones
-      if (!usuario.nombre || !usuario.email || !usuario.contrasena) {
-        return {
-          success: false,
-          error: 'Faltan datos requeridos'
-        };
-      }
-      
-      // Verificar si el email ya existe
-      const usuarioExistente = obtenerUsuarioPorEmail(usuario.email);
-      if (usuarioExistente) {
-        return {
-          success: false,
-          error: 'El email ya está registrado'
-        };
-      }
-      
-      const nuevoUsuario = crearUsuario(usuario);
-      
-      return {
-        success: true,
-        data: nuevoUsuario,
-        message: 'Usuario creado exitosamente'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al crear el usuario'
-      };
-    }
-  };
-
-  // Actualiza un usuario existente
-  const fetchActualizarUsuario = async (
-    id: string,
-    datosActualizados: Partial<Usuario>
-  ): Promise<ApiResponse<Usuario>> => {
-    try {
-      await simularDelay(500);
-      
-      const resultado = actualizarUsuario(id, datosActualizados);
-      
-      if (!resultado) {
-        return {
-          success: false,
-          error: 'No se pudo actualizar el usuario'
-        };
-      }
-      
-      // Obtener el usuario actualizado
-      const usuarioActualizado = obtenerUsuarioPorId(id);
-      
-      if (!usuarioActualizado) {
-        return {
-          success: false,
-          error: 'Error al obtener usuario actualizado'
-        };
-      }
-      
-      return {
-        success: true,
-        data: usuarioActualizado,
-        message: 'Usuario actualizado correctamente'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al actualizar usuario'
-      };
-    }
-  };
-
-  // Elimina un usuario
-  const fetchEliminarUsuario = async (id: string): Promise<ApiResponse<boolean>> => {
-    try {
-      await simularDelay(600);
-      
-      const resultado = eliminarUsuario(id);
-      
-      if (!resultado) {
-        return {
-          success: false,
-          error: 'Usuario no encontrado'
-        };
-      }
-      
-      return {
-        success: true,
-        data: true,
-        message: 'Usuario eliminado exitosamente'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al eliminar el usuario'
-      };
+      // TODO: Implementar creación de usuario
+      await cargarUsuarios();
+      return null;
+    } catch (err) {
+      console.error('Error creando usuario:', err);
+      return null;
     }
   };
 
   return {
-    // Data
     usuarios,
-    
-    // Operaciones
-    fetchUsuarios,
-    fetchUsuarioPorId,
-    fetchUsuarioPorEmail,
-    fetchCrearUsuario,
-    fetchActualizarUsuario,
-    fetchEliminarUsuario
+    loading,
+    error,
+    obtenerUsuarioPorEmail,
+    obtenerUsuarioPorId,
+    actualizarUsuario,
+    eliminarUsuario,
+    crearUsuario,
+    recargarUsuarios: cargarUsuarios,
+    // Aliases para compatibilidad
+    fetchUsuarios: cargarUsuarios,
+    fetchActualizarUsuario: actualizarUsuario,
+    fetchEliminarUsuario: eliminarUsuario,
+    fetchCrearUsuario: crearUsuario
   };
 };

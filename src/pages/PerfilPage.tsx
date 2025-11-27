@@ -4,15 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Usuario } from '../types';
 import { useUsuarios } from '../hooks';
-import { useDatabase } from '../context/DatabaseContext';
+import { usePedidos } from '../hooks/usePedidos';
 import { formatearPrecio } from '../helpers/productService';
 
 export const PerfilPage = () => {
   const { usuario, cerrarSesionUsuario, actualizarSesion } = useAuth();
   const navigate = useNavigate();
-  const { fetchUsuarioPorId, fetchActualizarUsuario } = useUsuarios();
-  const { pedidos } = useDatabase();
-  
+  const { obtenerUsuarioPorId, actualizarUsuario } = useUsuarios();
+  const { pedidos } = usePedidos();
+
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -23,7 +23,7 @@ export const PerfilPage = () => {
     comuna: '',
     direccion: ''
   });
-  
+
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,11 +37,10 @@ export const PerfilPage = () => {
 
   const cargarDatosUsuario = async () => {
     if (!usuario) return;
-    
+
     try {
-      const respuesta = await fetchUsuarioPorId(usuario.id);
-      if (respuesta.success && respuesta.data) {
-        const user = respuesta.data;
+      const user = obtenerUsuarioPorId(usuario.id);
+      if (user) {
         setFormData({
           nombre: user.nombre || '',
           email: user.email || '',
@@ -64,7 +63,7 @@ export const PerfilPage = () => {
 
     setError('');
     setSuccess('');
-    
+
     // Validar formato del teléfono
     if (formData.telefono && formData.telefono !== '+56') {
       if (!/^\+56[0-9]{9}$/.test(formData.telefono)) {
@@ -77,12 +76,10 @@ export const PerfilPage = () => {
 
     try {
       // Obtener el usuario completo
-      const respuestaUsuario = await fetchUsuarioPorId(usuario.id);
-      if (!respuestaUsuario.success || !respuestaUsuario.data) {
+      const usuarioCompleto = obtenerUsuarioPorId(usuario.id);
+      if (!usuarioCompleto) {
         throw new Error('No se pudo obtener el usuario');
       }
-
-      const usuarioCompleto = respuestaUsuario.data;
 
       // Actualizar solo los campos editables
       const usuarioActualizado: Usuario = {
@@ -96,12 +93,12 @@ export const PerfilPage = () => {
         direccion: formData.direccion
       };
 
-      const respuesta = await fetchActualizarUsuario(usuario.id, usuarioActualizado);
-      
-      if (respuesta.success) {
+      const success = await actualizarUsuario(usuario.id, usuarioActualizado);
+
+      if (success) {
         // Actualizar la sesión con los datos frescos
         await actualizarSesion();
-        
+
         setSuccess('Perfil actualizado correctamente');
         setEditMode(false);
         // Recargar los datos
@@ -116,7 +113,7 @@ export const PerfilPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // Manejo especial para el teléfono
     if (name === 'telefono') {
       // Si está vacío, establecer el prefijo por defecto
@@ -127,28 +124,28 @@ export const PerfilPage = () => {
         });
         return;
       }
-      
+
       // Asegurar que siempre comience con +56
       let telefonoFormateado = value;
       if (!telefonoFormateado.startsWith('+56')) {
         telefonoFormateado = '+56' + telefonoFormateado.replace(/^\+?56?/, '');
       }
-      
+
       // Eliminar caracteres no numéricos excepto el +
       telefonoFormateado = '+56' + telefonoFormateado.substring(3).replace(/\D/g, '');
-      
+
       // Limitar a +56 + 9 dígitos (formato chileno)
       if (telefonoFormateado.length > 12) {
         telefonoFormateado = telefonoFormateado.substring(0, 12);
       }
-      
+
       setFormData({
         ...formData,
         telefono: telefonoFormateado
       });
       return;
     }
-    
+
     // Para otros campos
     setFormData({
       ...formData,
@@ -192,9 +189,8 @@ export const PerfilPage = () => {
               <header className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h2 mb-0">Mi Perfil</h1>
                 {/* Badge dinámico según rol del usuario */}
-                <span className={`badge ${
-                  usuario.rol === 'administrador' ? 'bg-danger' : 'bg-primary'
-                }`}>
+                <span className={`badge ${usuario.rol === 'administrador' ? 'bg-danger' : 'bg-primary'
+                  }`}>
                   {usuario.rol.toUpperCase()}
                 </span>
               </header>
@@ -558,72 +554,20 @@ export const PerfilPage = () => {
                     .map((pedido, index) => {
                       const collapseId = `collapsePedido${index}`;
                       return (
-                      <div className="accordion-item" key={pedido.id}>
-                        <h2 className="accordion-header" id={`heading${index}`}>
-                          <button
-                            className="accordion-button collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target={`#${collapseId}`}
-                            aria-expanded="false"
-                            aria-controls={collapseId}
-                          >
-                            <div className="d-flex justify-content-between align-items-center w-100 pe-3">
-                              <div>
-                                <strong>Pedido #{pedido.id}</strong>
-                                <small className="text-muted ms-2">
-                                  {new Date(pedido.fecha).toLocaleDateString('es-CL', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </small>
-                              </div>
-                              <div className="d-flex align-items-center gap-3">
-                                <span className={`badge ${
-                                  pedido.estado === 'entregado' ? 'bg-success' :
-                                  pedido.estado === 'cancelado' ? 'bg-danger' :
-                                  pedido.estado === 'enviado' ? 'bg-primary' :
-                                  pedido.estado === 'procesando' ? 'bg-info' :
-                                  'bg-warning text-dark'
-                                }`}>
-                                  {pedido.estado.toUpperCase()}
-                                </span>
-                                <strong className="text-primary">{formatearPrecio(pedido.total)}</strong>
-                              </div>
-                            </div>
-                          </button>
-                        </h2>
-                        <div
-                          id={collapseId}
-                          className="accordion-collapse collapse"
-                          aria-labelledby={`heading${index}`}
-                          data-bs-parent="#accordionPedidos"
-                        >
-                          <div className="accordion-body">
-                            {/* Información del pedido */}
-                            <div className="mb-3">
-                              <h4 className="h6 mb-2">Información del Pedido</h4>
-                              <div className="row g-2">
-                                <div className="col-md-6">
-                                  <small className="text-muted">Estado:</small>
-                                  <p className="mb-0">
-                                    <span className={`badge ${
-                                      pedido.estado === 'entregado' ? 'bg-success' :
-                                      pedido.estado === 'cancelado' ? 'bg-danger' :
-                                      pedido.estado === 'enviado' ? 'bg-primary' :
-                                      pedido.estado === 'procesando' ? 'bg-info' :
-                                      'bg-warning text-dark'
-                                    }`}>
-                                      {pedido.estado.toUpperCase()}
-                                    </span>
-                                  </p>
-                                </div>
-                                <div className="col-md-6">
-                                  <small className="text-muted">Fecha:</small>
-                                  <p className="mb-0">
+                        <div className="accordion-item" key={pedido.id}>
+                          <h2 className="accordion-header" id={`heading${index}`}>
+                            <button
+                              className="accordion-button collapsed"
+                              type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target={`#${collapseId}`}
+                              aria-expanded="false"
+                              aria-controls={collapseId}
+                            >
+                              <div className="d-flex justify-content-between align-items-center w-100 pe-3">
+                                <div>
+                                  <strong>Pedido #{pedido.id}</strong>
+                                  <small className="text-muted ms-2">
                                     {new Date(pedido.fecha).toLocaleDateString('es-CL', {
                                       year: 'numeric',
                                       month: 'long',
@@ -631,87 +575,137 @@ export const PerfilPage = () => {
                                       hour: '2-digit',
                                       minute: '2-digit'
                                     })}
-                                  </p>
+                                  </small>
                                 </div>
-                                {pedido.direccionEnvio && (
-                                  <div className="col-12">
-                                    <small className="text-muted">Dirección de Envío:</small>
-                                    <p className="mb-0">{pedido.direccionEnvio}</p>
-                                  </div>
-                                )}
+                                <div className="d-flex align-items-center gap-3">
+                                  <span className={`badge ${pedido.estado === 'entregado' ? 'bg-success' :
+                                      pedido.estado === 'cancelado' ? 'bg-danger' :
+                                        pedido.estado === 'enviado' ? 'bg-primary' :
+                                          pedido.estado === 'procesando' ? 'bg-info' :
+                                            'bg-warning text-dark'
+                                    }`}>
+                                    {pedido.estado.toUpperCase()}
+                                  </span>
+                                  <strong className="text-primary">{formatearPrecio(pedido.total)}</strong>
+                                </div>
                               </div>
-                            </div>
-
-                            {/* Productos del pedido */}
-                            <div className="mb-3">
-                              <h4 className="h6 mb-2">Productos</h4>
-                              <div className="table-responsive">
-                                <table className="table table-sm">
-                                  <thead>
-                                    <tr>
-                                      <th>Producto</th>
-                                      <th>Precio</th>
-                                      <th>Cantidad</th>
-                                      <th>Subtotal</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {pedido.items.map((item, idx) => (
-                                      <tr key={`${item.id}-${idx}`}>
-                                        <td>
-                                          <div className="d-flex align-items-center">
-                                            <img 
-                                              src={item.imagen} 
-                                              alt={item.nombre}
-                                              style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                                              className="rounded me-2"
-                                            />
-                                            <div>
-                                              <div>{item.nombre}</div>
-                                              {item.tallaSeleccionada && (
-                                                <small className="text-muted">
-                                                  Talla: {item.tallaSeleccionada}
-                                                </small>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </td>
-                                        <td>{formatearPrecio(item.precio)}</td>
-                                        <td>{item.cantidad}</td>
-                                        <td>{formatearPrecio(item.precio * item.cantidad)}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-
-                            {/* Resumen de precios */}
-                            <div className="border-top pt-3">
-                              <div className="row">
-                                <div className="col-md-6 ms-auto">
-                                  <div className="d-flex justify-content-between mb-2">
-                                    <span>Subtotal:</span>
-                                    <span>{formatearPrecio(pedido.subtotal)}</span>
+                            </button>
+                          </h2>
+                          <div
+                            id={collapseId}
+                            className="accordion-collapse collapse"
+                            aria-labelledby={`heading${index}`}
+                            data-bs-parent="#accordionPedidos"
+                          >
+                            <div className="accordion-body">
+                              {/* Información del pedido */}
+                              <div className="mb-3">
+                                <h4 className="h6 mb-2">Información del Pedido</h4>
+                                <div className="row g-2">
+                                  <div className="col-md-6">
+                                    <small className="text-muted">Estado:</small>
+                                    <p className="mb-0">
+                                      <span className={`badge ${pedido.estado === 'entregado' ? 'bg-success' :
+                                          pedido.estado === 'cancelado' ? 'bg-danger' :
+                                            pedido.estado === 'enviado' ? 'bg-primary' :
+                                              pedido.estado === 'procesando' ? 'bg-info' :
+                                                'bg-warning text-dark'
+                                        }`}>
+                                        {pedido.estado.toUpperCase()}
+                                      </span>
+                                    </p>
                                   </div>
-                                  {pedido.descuento > 0 && (
-                                    <div className="d-flex justify-content-between mb-2 text-success">
-                                      <span>Descuento:</span>
-                                      <span>-{formatearPrecio(pedido.descuento)}</span>
+                                  <div className="col-md-6">
+                                    <small className="text-muted">Fecha:</small>
+                                    <p className="mb-0">
+                                      {new Date(pedido.fecha).toLocaleDateString('es-CL', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </p>
+                                  </div>
+                                  {pedido.direccionEnvio && (
+                                    <div className="col-12">
+                                      <small className="text-muted">Dirección de Envío:</small>
+                                      <p className="mb-0">{pedido.direccionEnvio}</p>
                                     </div>
                                   )}
-                                  <div className="d-flex justify-content-between fw-bold border-top pt-2">
-                                    <span>Total:</span>
-                                    <span className="text-primary">{formatearPrecio(pedido.total)}</span>
+                                </div>
+                              </div>
+
+                              {/* Productos del pedido */}
+                              <div className="mb-3">
+                                <h4 className="h6 mb-2">Productos</h4>
+                                <div className="table-responsive">
+                                  <table className="table table-sm">
+                                    <thead>
+                                      <tr>
+                                        <th>Producto</th>
+                                        <th>Precio</th>
+                                        <th>Cantidad</th>
+                                        <th>Subtotal</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {pedido.items.map((item, idx) => (
+                                        <tr key={`${item.id}-${idx}`}>
+                                          <td>
+                                            <div className="d-flex align-items-center">
+                                              <img
+                                                src={item.imagen}
+                                                alt={item.nombre}
+                                                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                                className="rounded me-2"
+                                              />
+                                              <div>
+                                                <div>{item.nombre}</div>
+                                                {item.tallaSeleccionada && (
+                                                  <small className="text-muted">
+                                                    Talla: {item.tallaSeleccionada}
+                                                  </small>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </td>
+                                          <td>{formatearPrecio(item.precio)}</td>
+                                          <td>{item.cantidad}</td>
+                                          <td>{formatearPrecio(item.precio * item.cantidad)}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+
+                              {/* Resumen de precios */}
+                              <div className="border-top pt-3">
+                                <div className="row">
+                                  <div className="col-md-6 ms-auto">
+                                    <div className="d-flex justify-content-between mb-2">
+                                      <span>Subtotal:</span>
+                                      <span>{formatearPrecio(pedido.subtotal)}</span>
+                                    </div>
+                                    {pedido.descuento > 0 && (
+                                      <div className="d-flex justify-content-between mb-2 text-success">
+                                        <span>Descuento:</span>
+                                        <span>-{formatearPrecio(pedido.descuento)}</span>
+                                      </div>
+                                    )}
+                                    <div className="d-flex justify-content-between fw-bold border-top pt-2">
+                                      <span>Total:</span>
+                                      <span className="text-primary">{formatearPrecio(pedido.total)}</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               )}
             </div>

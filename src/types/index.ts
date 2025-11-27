@@ -132,7 +132,7 @@ export type TallaCalzado = 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 | 45;
 export interface StockTalla {
   talla: TallaCalzado;
   stock: number;
-  idInventario: number; // Added to link with backend
+  idInventario?: number; // Optional - Added to link with backend
 }
 
 // Estados posibles de un pedido

@@ -1,122 +1,64 @@
 // Página de productos con filtros y lista de productos
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ProductList, ProductFilter } from '../components/products/products-components.index';
 import { useProducts } from '../hooks';
-import type { FilterState }  from '../components/products/products-components.index';
-import type { Producto, CategoriaProducto } from '../types';
+import type { FilterState } from '../components/products/products-components.index';
+import type { CategoriaProducto } from '../types';
 
 export const ProductosPage = () => {
-  const { fetchProductos, fetchProductosPorCategoria } = useProducts();
-  // Estado de productos filtrados y loading
-  const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { productos, loading } = useProducts();
   const [searchParams] = useSearchParams();
-  const [categoriaActual, setCategoriaActual] = useState<CategoriaProducto | 'todos'>('todos');
+  const [filtros, setFiltros] = useState<FilterState>({
+    categoria: 'todos',
+    busqueda: '',
+    ordenar: 'recientes'
+  });
 
-  // Cargar productos al montar el componente o cuando cambie la URL
+  // Actualizar filtros desde URL al montar
   useEffect(() => {
     const categoria = searchParams.get('categoria');
     if (categoria && categoria !== 'todos') {
-      setCategoriaActual(categoria as CategoriaProducto);
-      cargarProductosPorCategoria(categoria);
-    } else {
-      setCategoriaActual('todos');
-      cargarProductos();
+      setFiltros(prev => ({ ...prev, categoria: categoria as CategoriaProducto | 'todos' }));
     }
   }, [searchParams]);
 
-  // Obtiene todos los productos desde el servicio
-  const cargarProductos = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchProductos();
-      if (response.success && response.data) {
-        setProductosFiltrados(response.data);
-      }
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
-    } finally {
-      setLoading(false);
+  // Filtrar y ordenar productos usando useMemo
+  const productosFiltrados = useMemo(() => {
+    let resultado = [...productos];
+
+    // Filtrar por categoría
+    if (filtros.categoria !== 'todos') {
+      resultado = resultado.filter(p => p.categoria === filtros.categoria);
     }
-  };
 
-  // Carga productos por categoría desde la URL
-  const cargarProductosPorCategoria = async (categoria: string) => {
-    try {
-      setLoading(true);
-      const response = await fetchProductosPorCategoria(categoria as CategoriaProducto);
-      if (response.success && response.data) {
-        setProductosFiltrados(response.data);
-      }
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
-    } finally {
-      setLoading(false);
+    // Filtrar por búsqueda
+    if (filtros.busqueda.trim()) {
+      const terminoBusqueda = filtros.busqueda.toLowerCase();
+      resultado = resultado.filter(producto =>
+        producto.nombre.toLowerCase().includes(terminoBusqueda) ||
+        producto.descripcion.toLowerCase().includes(terminoBusqueda) ||
+        producto.categoria.toLowerCase().includes(terminoBusqueda)
+      );
     }
-  };
 
-  // Maneja cambios de filtros (categoría, búsqueda, ordenamiento)
-  const handleFilterChange = async (filtros: FilterState) => {
-    try {
-      setLoading(true);
-      let productosResultado: Producto[] = [];
-
-      // Primero obtener productos según categoría
-      if (filtros.categoria !== 'todos') {
-        // Filtrar por categoría específica
-        const response = await fetchProductosPorCategoria(filtros.categoria);
-        if (response.success && response.data) {
-          productosResultado = response.data;
-        }
-      } else {
-        // Obtener todos los productos
-        const response = await fetchProductos();
-        if (response.success && response.data) {
-          productosResultado = response.data;
-        }
-      }
-
-      // Luego aplicar búsqueda sobre los productos filtrados por categoría
-      if (filtros.busqueda.trim()) {
-        const terminoBusqueda = filtros.busqueda.toLowerCase();
-        productosResultado = productosResultado.filter(producto => 
-          producto.nombre.toLowerCase().includes(terminoBusqueda) ||
-          producto.descripcion.toLowerCase().includes(terminoBusqueda) ||
-          producto.categoria.toLowerCase().includes(terminoBusqueda)
-        );
-      }
-
-      // Aplicar ordenamiento según criterio seleccionado
-      productosResultado = ordenarProductos(productosResultado, filtros.ordenar);
-      
-      setProductosFiltrados(productosResultado);
-    } catch (error) {
-      console.error('Error al filtrar productos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Ordena productos según criterio (precio, nombre, recientes)
-  const ordenarProductos = (
-    productos: Producto[], 
-    ordenar: FilterState['ordenar']
-  ): Producto[] => {
-    const productosOrdenados = [...productos];
-
-    switch (ordenar) {
+    // Ordenar según criterio seleccionado
+    switch (filtros.ordenar) {
       case 'precio-asc':
-        return productosOrdenados.sort((a, b) => a.precio - b.precio);
+        return resultado.sort((a, b) => a.precio - b.precio);
       case 'precio-desc':
-        return productosOrdenados.sort((a, b) => b.precio - a.precio);
+        return resultado.sort((a, b) => b.precio - a.precio);
       case 'nombre':
-        return productosOrdenados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        return resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
       case 'recientes':
       default:
-        return productosOrdenados.sort((a, b) => b.id - a.id);
+        return resultado.sort((a, b) => b.id - a.id);
     }
+  }, [productos, filtros]);
+
+  const handleFilterChange = (nuevosFiltros: FilterState) => {
+    setFiltros(nuevosFiltros);
   };
 
   return (
@@ -135,9 +77,9 @@ export const ProductosPage = () => {
 
       {/* Sección de filtros */}
       <nav aria-label="Filtros de productos">
-        <ProductFilter 
-          onFilterChange={handleFilterChange} 
-          categoriaInicial={categoriaActual}
+        <ProductFilter
+          onFilterChange={handleFilterChange}
+          categoriaInicial={filtros.categoria}
         />
       </nav>
 

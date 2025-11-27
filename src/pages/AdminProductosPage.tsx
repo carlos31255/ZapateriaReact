@@ -8,8 +8,7 @@ import styles from './AdminProductosPage.module.css';
 const TALLAS_DISPONIBLES: TallaCalzado[] = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
 
 export const AdminProductosPage = () => {
-  const { productos, fetchProductos, fetchCrearProducto, fetchActualizarProducto, fetchEliminarProducto } = useProducts();
-  const [loading, setLoading] = useState(true);
+  const { productos, loading, crearProducto, actualizarProducto, eliminarProducto } = useProducts();
   const [showModal, setShowModal] = useState(false);
   const [productoEditar, setProductoEditar] = useState<Producto | null>(null);
   const [formData, setFormData] = useState({
@@ -33,23 +32,7 @@ export const AdminProductosPage = () => {
     recentLinks.unshift(link);
     recentLinks = recentLinks.slice(0, 10);
     localStorage.setItem('admin_recent_pages', JSON.stringify(recentLinks));
-
-    cargarProductos();
   }, []);
-
-  const cargarProductos = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchProductos();
-      if (response.success && response.data) {
-        // Los productos ya están en el Context, solo actualizamos loading
-      }
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -103,11 +86,11 @@ export const AdminProductosPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       // Calcular stock total
       const stockTotal = stockPorTalla.reduce((sum, item) => sum + item.stock, 0);
-      
+
       const productoData = {
         nombre: formData.nombre,
         precio: Number(formData.precio),
@@ -121,14 +104,13 @@ export const AdminProductosPage = () => {
 
       if (productoEditar) {
         // Actualizar producto existente
-        await fetchActualizarProducto(productoEditar.id, productoData);
+        await actualizarProducto(productoEditar.id, productoData);
       } else {
         // Agregar nuevo producto
-        await fetchCrearProducto(productoData);
+        await crearProducto(productoData);
       }
 
       setShowModal(false);
-      await cargarProductos();
     } catch (error) {
       console.error('Error al guardar producto:', error);
       alert('Error al guardar el producto');
@@ -138,8 +120,7 @@ export const AdminProductosPage = () => {
   const handleEliminar = async (id: number) => {
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
       try {
-        await fetchEliminarProducto(id);
-        await cargarProductos();
+        await eliminarProducto(id);
       } catch (error) {
         console.error('Error al eliminar producto:', error);
         alert('Error al eliminar el producto');
@@ -215,14 +196,14 @@ export const AdminProductosPage = () => {
                   </td>
                   <td>
                     <div className={styles.actions}>
-                      <button 
+                      <button
                         className={styles.editButton}
                         onClick={() => abrirModalEditar(producto)}
                         title="Editar"
                       >
                         <i className="bi bi-pencil"></i>
                       </button>
-                      <button 
+                      <button
                         className={styles.deleteButton}
                         onClick={() => handleEliminar(producto.id)}
                         title="Eliminar"

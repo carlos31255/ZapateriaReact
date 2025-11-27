@@ -1,3 +1,4 @@
+import axiosInstance from '../config/axiosConfig';
 import axios from 'axios';
 import type { UsuarioAutenticado, CredencialesLogin, DatosRegistro, UsuarioBackend } from '../types';
 
@@ -5,72 +6,91 @@ const API_URL = import.meta.env.VITE_API_USUARIO_URL;
 
 export const authService = {
     login: async (credenciales: CredencialesLogin): Promise<UsuarioAutenticado> => {
-        // 1. Buscar usuario por email
-        const response = await axios.get<UsuarioBackend>(`${API_URL}/usuarios/buscar`, {
-            params: { email: credenciales.email }
-        });
+        try {
+            // Llamar al endpoint de login con JWT
+            const response = await axios.post(`${API_URL}/auth/login`, {
+                email: credenciales.email,
+                password: credenciales.contrasena
+            });
 
-        const usuarioBackend = response.data;
+            const { token, refreshToken, userId, email, nombre, rol } = response.data;
 
-        // 2. Verificar contraseña (LOCALMENTE - INSEGURO, SOLO PARA PROTOTIPO)
-        // En producción esto debe hacerse en el backend
-        if (usuarioBackend.persona.passHash !== credenciales.contrasena) {
-            throw new Error('Contraseña incorrecta');
+            // Guardar tokens en localStorage
+            localStorage.setItem('token', token);
+            localStorage.setItem('refreshToken', refreshToken);
+
+            // Obtener datos completos del usuario
+            const usuarioResponse = await axiosInstance.get<UsuarioBackend>(`${API_URL}/usuarios/${userId}`);
+            const usuarioBackend = usuarioResponse.data;
+
+            // Mapear a UsuarioAutenticado
+            return {
+                id: usuarioBackend.idPersona.toString(),
+                run: usuarioBackend.persona.rut,
+                nombre: nombre,
+                email: email,
+                rol: rol.toLowerCase() as any,
+                genero: '',
+                fechaNacimiento: '',
+                region: '',
+                comuna: usuarioBackend.persona.idComuna ? usuarioBackend.persona.idComuna.toString() : '',
+                direccion: `${usuarioBackend.persona.calle || ''} ${usuarioBackend.persona.numeroPuerta || ''}`.trim(),
+                telefono: usuarioBackend.persona.telefono,
+                fechaRegistro: usuarioBackend.persona.fechaRegistro,
+                logueado: true,
+                idPersonaBackend: usuarioBackend.idPersona
+            };
+        } catch (error: any) {
+            console.error('Error en login:', error);
+            if (error.response?.status === 401) {
+                throw new Error('Credenciales inválidas');
+            }
+            throw new Error('Error al iniciar sesión');
         }
+    },
 
-        // 3. Mapear a UsuarioAutenticado
-        return {
-            id: usuarioBackend.idPersona.toString(),
-            run: usuarioBackend.persona.rut,
-            nombre: `${usuarioBackend.persona.nombre} ${usuarioBackend.persona.apellido}`,
-            email: usuarioBackend.persona.email,
-            rol: usuarioBackend.rol.nombreRol.toLowerCase() as any,
-            genero: '', // No disponible en backend actual
-            fechaNacimiento: '', // No disponible
-            region: '', // Pendiente de implementar
-            comuna: usuarioBackend.persona.idComuna ? usuarioBackend.persona.idComuna.toString() : '',
-            direccion: `${usuarioBackend.persona.calle || ''} ${usuarioBackend.persona.numeroPuerta || ''}`.trim(),
-            telefono: usuarioBackend.persona.telefono,
-            fechaRegistro: usuarioBackend.persona.fechaRegistro,
-            logueado: true,
-            idPersonaBackend: usuarioBackend.idPersona
-        };
+    logout: async (): Promise<void> => {
+        try {
+            await axiosInstance.post(`${API_URL}/auth/logout`);
+        } catch (error) {
+            console.error('Error en logout:', error);
+        } finally {
+            // Limpiar tokens del localStorage
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+        }
     },
 
     register: async (datos: DatosRegistro): Promise<void> => {
         try {
+            // Separar nombre y apellido
+            const nombreParts = datos.nombre.split(' ');
+            const nombre = nombreParts[0];
+            const apellido = nombreParts.slice(1).join(' ') || '';
+
             // 1. Crear Persona
             const personaData = {
-                nombre: datos.nombre,
-                apellido: '', // El formulario actual solo tiene nombre completo, habría que separarlo o ajustar
+                nombre: nombre,
+                apellido: apellido,
                 rut: datos.run,
                 telefono: datos.telefono,
                 email: datos.email,
                 idComuna: parseInt(datos.comuna) || null,
                 calle: datos.direccion,
-                numeroPuerta: '', // No está en el formulario simple
-                username: datos.email.split('@')[0], // Generar username temporal
-                passHash: datos.contrasena, // En producción: NO enviar pass en plano para guardar en persona
+                numeroPuerta: '',
+                username: datos.email.split('@')[0],
+                passHash: datos.contrasena, // En producción, esto se debe hashear en el backend
                 fechaRegistro: new Date().toISOString(),
                 estado: 'activo'
             };
-
-            // Separar nombre y apellido si es posible
-            const nombreParts = datos.nombre.split(' ');
-            if (nombreParts.length > 1) {
-                personaData.nombre = nombreParts[0];
-                personaData.apellido = nombreParts.slice(1).join(' ');
-            }
 
             const responsePersona = await axios.post(`${API_URL}/personas`, personaData);
             const nuevaPersona = responsePersona.data;
 
             // 2. Crear Usuario
-            // Necesitamos el ID del rol 'cliente'. Asumimos que es 2 (1 admin, 2 cliente) o lo buscamos
-            // Por simplicidad para este prototipo, hardcodeamos idRol=2
             const usuarioData = {
                 persona: nuevaPersona,
-                rol: { idRol: 2 } // Asumiendo rol cliente
+                rol: { idRol: 2 } // Rol cliente
             };
 
             await axios.post(`${API_URL}/usuarios`, usuarioData);
@@ -79,5 +99,25 @@ export const authService = {
             console.error('Error en registro:', error);
             throw error;
         }
+    },
+
+    // Gestión de usuarios (para administradores)
+    getAllUsuarios: async (): Promise<UsuarioBackend[]> => {
+        const response = await axiosInstance.get<UsuarioBackend[]>(`${API_URL}/usuarios`);
+        return response.data;
+    },
+
+    getUsuarioById: async (id: number): Promise<UsuarioBackend> => {
+        const response = await axiosInstance.get<UsuarioBackend>(`${API_URL}/usuarios/${id}`);
+        return response.data;
+    },
+
+    updateUsuario: async (id: number, usuario: Partial<UsuarioBackend>): Promise<UsuarioBackend> => {
+        const response = await axiosInstance.put<UsuarioBackend>(`${API_URL}/usuarios/${id}`, usuario);
+        return response.data;
+    },
+
+    deleteUsuario: async (id: number): Promise<void> => {
+        await axiosInstance.delete(`${API_URL}/usuarios/${id}`);
     }
 };

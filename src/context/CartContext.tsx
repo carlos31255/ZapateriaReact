@@ -4,7 +4,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Carrito, TallaCalzado, ProductoCarrito } from '../types';
-import { useDatabase } from './DatabaseContext';
+import { useProducts } from '../hooks/useProducts';
 
 // TIPOS
 
@@ -29,7 +29,7 @@ interface CartProviderProps {
 }
 
 export const CartProvider = ({ children }: CartProviderProps) => {
-  const { obtenerProductoPorId } = useDatabase();
+  const { obtenerProductoPorId } = useProducts();
 
   // Estado del carrito
   const [carrito, setCarrito] = useState<Carrito>(() => {
