@@ -88,17 +88,14 @@ export const CartSummary = ({ onCheckout }: CartSummaryProps) => {
       // 2. Crear el pedido
       const nuevoPedido = await crearPedido({
         usuarioId: usuario.id,
-        productos: carrito.items.map(item => ({
-          productoId: item.id,
-          nombre: item.nombre,
-          cantidad: item.cantidad,
-          precio: item.precio,
-          talla: item.tallaSeleccionada || 0
-        })),
+        nombreUsuario: usuario.nombre,
+        emailUsuario: usuario.email,
+        items: carrito.items,
+        subtotal,
+        descuento,
         total,
         estado: 'pendiente',
-        direccionEnvio: usuario.direccion || '',
-        metodoPago: 'Transferencia'
+        direccionEnvio: usuario.direccion || ''
       });
 
       if (!nuevoPedido) {

@@ -517,7 +517,7 @@ export const RegisterPage = () => {
                         onBlur={handleBlur}
                         required
                         placeholder="••••••••"
-                        minLength={6}
+                        minLength={8}
                         aria-describedby="passwordHelp"
                       />
                       {/* Mensaje de error de contraseña */}
@@ -528,7 +528,7 @@ export const RegisterPage = () => {
                       )}
                       {/* Texto de ayuda para requisitos de contraseña */}
                       <small id="passwordHelp" className="form-text text-muted">
-                        Mínimo 6 caracteres
+                        Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo
                       </small>
                     </div>
                     {/* Campo Confirmar Contraseña */}
@@ -547,7 +547,7 @@ export const RegisterPage = () => {
                         onBlur={handleBlur}
                         required
                         placeholder="••••••••"
-                        minLength={6}
+                        minLength={8}
                       />
                       {/* Mensaje de error si las contraseñas no coinciden */}
                       {errors.confirmarContrasena && (
