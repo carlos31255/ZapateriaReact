@@ -28,11 +28,12 @@ export const useProducts = () => {
             nombre: modelo.nombreModelo,
             precio: modelo.precioUnitario,
             imagen: modelo.imagenUrl,
-            categoria: 'hombre', // TODO: Agregar categoría al modelo
+            categoria: (modelo.categoria as 'hombre' | 'mujer' | 'niños') || 'hombre',
             descripcion: modelo.descripcion,
             stock: 0,
             stockPorTalla: [],
-            marca: modelo.marca.nombreMarca
+            marca: modelo.marca.nombreMarca,
+            destacado: true // Temporal: Marcar todos como destacados
           });
         }
 
@@ -45,10 +46,13 @@ export const useProducts = () => {
         });
       });
 
-      setProductos(Array.from(productosMap.values()));
+      const nuevosProductos = Array.from(productosMap.values());
+      setProductos(nuevosProductos);
+      return nuevosProductos;
     } catch (err) {
       console.error('Error cargando productos:', err);
       setError('Error al cargar productos');
+      return [];
     } finally {
       setLoading(false);
     }
@@ -131,9 +135,9 @@ export const useProducts = () => {
     // Aliases para compatibilidad con páginas existentes
     fetchProductos: cargarProductos,
     fetchProductosPorCategoria: async (categoria: string) => {
-      // TODO: Implementar filtro por categoría en backend
-      await cargarProductos();
-      return productos.filter(p => p.categoria === categoria);
+      const allProducts = await cargarProductos();
+      if (categoria === 'todos') return allProducts;
+      return allProducts.filter(p => p.categoria === categoria);
     },
     fetchCrearProducto: crearProducto,
     fetchActualizarProducto: actualizarProducto,

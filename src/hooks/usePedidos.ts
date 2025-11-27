@@ -30,30 +30,30 @@ export const usePedidos = () => {
 
           // Calcular subtotal y total
           const subtotal = detalles.reduce((sum, d) => sum + (d.precioUnitario * d.cantidad), 0);
-          const descuento = 0; // TODO: Implementar descuentos
+          const descuento = 0; // Implementar descuentos
 
           return {
             id: boleta.idBoleta.toString(),
             usuarioId: usuario.id,
             nombreUsuario: usuario.nombre,
             emailUsuario: usuario.email,
-            fecha: new Date().toISOString(), // TODO: Usar fecha real cuando esté disponible
+            fecha: new Date().toISOString(), // Usar fecha real cuando esté disponible
             estado: boleta.estado as 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado',
             items: detalles.map(d => ({
               // Propiedades de Producto
               id: d.idInventario,
               productoId: d.idInventario,
-              nombre: `Producto ${d.idInventario}`, // TODO: Obtener nombre real
-              descripcion: '', // TODO: Obtener descripción real
-              imagen: '', // TODO: Obtener imagen real
+              nombre: `Producto ${d.idInventario}`, // Obtener nombre real
+              descripcion: '', // Obtener descripción real
+              imagen: '', // Obtener imagen real
               precio: d.precioUnitario,
-              categoria: 'hombre' as CategoriaProducto, // TODO: Obtener categoría real
-              stock: 0, // TODO: Obtener stock real
+              categoria: 'hombre' as CategoriaProducto, // Obtener categoría real
+              stock: 0, // Obtener stock real
               stockPorTalla: [],
               destacado: false,
               // Propiedades de ProductoCarrito
               cantidad: d.cantidad,
-              tallaSeleccionada: undefined, // TODO: Obtener talla real
+              tallaSeleccionada: undefined, // Obtener talla real
               idInventario: d.idInventario
             })),
             subtotal,
@@ -88,7 +88,7 @@ export const usePedidos = () => {
       // Crear boleta
       const nuevaBoleta = await ventasService.createBoleta({
         idCliente: usuario.idPersonaBackend,
-        idVendedor: 1 // TODO: Vendedor por defecto
+        idVendedor: 1 // Vendedor por defecto
       });
 
       // Crear detalles de boleta

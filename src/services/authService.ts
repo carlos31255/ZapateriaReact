@@ -68,32 +68,18 @@ export const authService = {
             const nombre = nombreParts[0];
             const apellido = nombreParts.slice(1).join(' ') || '';
 
-            // 1. Crear Persona
-            const personaData = {
+            const registerRequest = {
+                run: datos.run,
                 nombre: nombre,
                 apellido: apellido,
-                rut: datos.run,
-                telefono: datos.telefono,
                 email: datos.email,
-                idComuna: parseInt(datos.comuna) || null,
-                calle: datos.direccion,
-                numeroPuerta: '',
-                username: datos.email.split('@')[0],
-                passHash: datos.contrasena, // En producción, esto se debe hashear en el backend
-                fechaRegistro: new Date().toISOString(),
-                estado: 'activo'
+                telefono: datos.telefono,
+                comuna: datos.comuna,
+                direccion: datos.direccion,
+                password: datos.contrasena
             };
 
-            const responsePersona = await axios.post(`${API_URL}/personas`, personaData);
-            const nuevaPersona = responsePersona.data;
-
-            // 2. Crear Usuario
-            const usuarioData = {
-                persona: nuevaPersona,
-                rol: { idRol: 2 } // Rol cliente
-            };
-
-            await axios.post(`${API_URL}/usuarios`, usuarioData);
+            await axios.post(`${API_URL}/auth/register`, registerRequest);
 
         } catch (error) {
             console.error('Error en registro:', error);

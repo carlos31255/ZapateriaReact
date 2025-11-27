@@ -73,6 +73,7 @@ export interface ModeloZapato {
   precioUnitario: number;
   imagenUrl: string;
   estado: string;
+  categoria?: string;
 }
 
 export interface Inventario {

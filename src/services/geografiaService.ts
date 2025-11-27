@@ -1,6 +1,9 @@
 import axios from 'axios';
 import type { Region, Comuna, Ciudad } from '../types';
 
+// Re-export types for convenience
+export type { Region, Comuna, Ciudad } from '../types';
+
 const API_URL = import.meta.env.VITE_API_GEOGRAFIA_URL;
 
 export const geografiaService = {

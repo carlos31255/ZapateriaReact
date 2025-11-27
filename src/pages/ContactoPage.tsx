@@ -1,10 +1,42 @@
 // Página de contacto con formulario de comunicación
 
+import { useState } from 'react';
+import { contactService, type ContactoData } from '../services/contactService';
+
 export const ContactoPage = () => {
+  const [formData, setFormData] = useState<ContactoData>({
+    nombre: '',
+    correo: '',
+    comentario: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   // Maneja el envío del formulario de contacto
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Mensaje enviado correctamente');
+    setLoading(true);
+    try {
+      await contactService.enviarMensaje(formData);
+      alert('Mensaje enviado correctamente');
+      setFormData({
+        nombre: '',
+        correo: '',
+        comentario: ''
+      });
+    } catch (error) {
+      console.error('Error enviando mensaje:', error);
+      alert('Hubo un error al enviar el mensaje. Por favor, intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,8 +72,11 @@ export const ContactoPage = () => {
                     className="form-control"
                     id="nombre"
                     name="nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
                     placeholder="Tu nombre completo"
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -55,8 +90,11 @@ export const ContactoPage = () => {
                     className="form-control"
                     id="correo"
                     name="correo"
+                    value={formData.correo}
+                    onChange={handleChange}
                     placeholder="tu@email.com"
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -69,16 +107,28 @@ export const ContactoPage = () => {
                     className="form-control"
                     id="comentario"
                     name="comentario"
+                    value={formData.comentario}
+                    onChange={handleChange}
                     rows={5}
                     placeholder="Escribe tu mensaje aquí..."
                     required
+                    disabled={loading}
                   ></textarea>
                 </div>
 
                 {/* Botón de envío */}
-                <button type="submit" className="btn btn-primary btn-lg w-100">
-                  <i className="bi bi-send me-2"></i>
-                  Enviar Mensaje
+                <button type="submit" className="btn btn-primary btn-lg w-100" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-send me-2"></i>
+                      Enviar Mensaje
+                    </>
+                  )}
                 </button>
               </form>
             </div>
