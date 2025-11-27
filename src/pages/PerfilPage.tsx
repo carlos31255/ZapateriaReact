@@ -38,23 +38,17 @@ export const PerfilPage = () => {
   const cargarDatosUsuario = async () => {
     if (!usuario) return;
 
-    try {
-      const user = obtenerUsuarioPorId(usuario.id);
-      if (user) {
-        setFormData({
-          nombre: user.nombre || '',
-          email: user.email || '',
-          telefono: user.telefono || '+56',
-          genero: user.genero || '',
-          fechaNacimiento: user.fechaNacimiento || '',
-          region: user.region || '',
-          comuna: user.comuna || '',
-          direccion: user.direccion || ''
-        });
-      }
-    } catch (err) {
-      console.error('Error al cargar datos del usuario:', err);
-    }
+    // Usar directamente los datos del usuario del contexto
+    setFormData({
+      nombre: usuario.nombre || '',
+      email: usuario.email || '',
+      telefono: usuario.telefono || '+56',
+      genero: usuario.genero || '',
+      fechaNacimiento: usuario.fechaNacimiento || '',
+      region: usuario.region || '',
+      comuna: usuario.comuna || '',
+      direccion: usuario.direccion || ''
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -579,10 +573,10 @@ export const PerfilPage = () => {
                                 </div>
                                 <div className="d-flex align-items-center gap-3">
                                   <span className={`badge ${pedido.estado === 'entregado' ? 'bg-success' :
-                                      pedido.estado === 'cancelado' ? 'bg-danger' :
-                                        pedido.estado === 'enviado' ? 'bg-primary' :
-                                          pedido.estado === 'procesando' ? 'bg-info' :
-                                            'bg-warning text-dark'
+                                    pedido.estado === 'cancelado' ? 'bg-danger' :
+                                      pedido.estado === 'enviado' ? 'bg-primary' :
+                                        pedido.estado === 'procesando' ? 'bg-info' :
+                                          'bg-warning text-dark'
                                     }`}>
                                     {pedido.estado.toUpperCase()}
                                   </span>
@@ -606,10 +600,10 @@ export const PerfilPage = () => {
                                     <small className="text-muted">Estado:</small>
                                     <p className="mb-0">
                                       <span className={`badge ${pedido.estado === 'entregado' ? 'bg-success' :
-                                          pedido.estado === 'cancelado' ? 'bg-danger' :
-                                            pedido.estado === 'enviado' ? 'bg-primary' :
-                                              pedido.estado === 'procesando' ? 'bg-info' :
-                                                'bg-warning text-dark'
+                                        pedido.estado === 'cancelado' ? 'bg-danger' :
+                                          pedido.estado === 'enviado' ? 'bg-primary' :
+                                            pedido.estado === 'procesando' ? 'bg-info' :
+                                              'bg-warning text-dark'
                                         }`}>
                                         {pedido.estado.toUpperCase()}
                                       </span>

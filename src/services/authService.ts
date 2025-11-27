@@ -13,32 +13,43 @@ export const authService = {
                 password: credenciales.contrasena
             });
 
-            const { token, refreshToken, userId, email, nombre, rol } = response.data;
+            const {
+                token,
+                refreshToken,
+                userId,
+                email,
+                nombre,
+                rol,
+                run,
+                telefono,
+                genero,
+                fechaNacimiento,
+                region,
+                comuna,
+                direccion,
+                fechaRegistro
+            } = response.data;
 
             // Guardar tokens en localStorage
             localStorage.setItem('token', token);
             localStorage.setItem('refreshToken', refreshToken);
 
-            // Obtener datos completos del usuario
-            const usuarioResponse = await axiosInstance.get<UsuarioBackend>(`${API_URL}/usuarios/${userId}`);
-            const usuarioBackend = usuarioResponse.data;
-
-            // Mapear a UsuarioAutenticado
+            // Mapear a UsuarioAutenticado usando los datos del LoginResponse
             return {
-                id: usuarioBackend.idPersona.toString(),
-                run: usuarioBackend.persona.rut,
-                nombre: nombre,
-                email: email,
+                id: userId.toString(),
+                run: run || '',
+                nombre: nombre || '',
+                email: email || '',
                 rol: rol.toLowerCase() as any,
-                genero: '',
-                fechaNacimiento: '',
-                region: '',
-                comuna: usuarioBackend.persona.idComuna ? usuarioBackend.persona.idComuna.toString() : '',
-                direccion: `${usuarioBackend.persona.calle || ''} ${usuarioBackend.persona.numeroPuerta || ''}`.trim(),
-                telefono: usuarioBackend.persona.telefono,
-                fechaRegistro: usuarioBackend.persona.fechaRegistro,
+                genero: genero || '',
+                fechaNacimiento: fechaNacimiento || '',
+                region: region || '',
+                comuna: comuna || '',
+                direccion: direccion || '',
+                telefono: telefono || '',
+                fechaRegistro: fechaRegistro || new Date().toISOString(),
                 logueado: true,
-                idPersonaBackend: usuarioBackend.idPersona
+                idPersonaBackend: userId
             };
         } catch (error: any) {
             console.error('Error en login:', error);
@@ -74,6 +85,9 @@ export const authService = {
                 apellido: apellido,
                 email: datos.email,
                 telefono: datos.telefono,
+                genero: datos.genero,
+                fechaNacimiento: datos.fechaNacimiento,
+                region: datos.region,
                 comuna: datos.comuna,
                 direccion: datos.direccion,
                 password: datos.contrasena

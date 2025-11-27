@@ -390,7 +390,7 @@ export const RegisterPage = () => {
                       >
                         <option value="">Seleccionar...</option>
                         {comunas.map(comuna => (
-                          <option key={comuna.idComuna} value={comuna.nombreComuna}>
+                          <option key={comuna.idComuna} value={comuna.idComuna.toString()}>
                             {comuna.nombreComuna}
                           </option>
                         ))}
