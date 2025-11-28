@@ -21,7 +21,9 @@ export const usePedidos = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Cargando pedidos para cliente:', usuario.idPersonaBackend);
       const boletas = await ventasService.getBoletasByCliente(usuario.idPersonaBackend);
+      console.log('Boletas encontradas:', boletas);
 
       // Mapear boletas a pedidos
       const pedidosMapeados: Pedido[] = await Promise.all(

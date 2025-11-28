@@ -1,6 +1,5 @@
 // ============================================
 // DATOS INICIALES SOLO PARA BLOG
-// Productos, usuarios y pedidos ahora vienen del backend
 // ============================================
 
 import type { ArticuloBlog } from '../types';

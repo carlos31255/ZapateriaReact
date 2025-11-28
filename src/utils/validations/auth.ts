@@ -167,9 +167,8 @@ export const validarFormularioLogin = (
     errores.push({ field: 'email', message: errorEmail });
   }
 
-  const errorContrasena = validarContrasena(contrasena);
-  if (errorContrasena) {
-    errores.push({ field: 'contrasena', message: errorContrasena });
+  if (!contrasena) {
+    errores.push({ field: 'contrasena', message: 'La contraseña es requerida' });
   }
 
   return errores;

@@ -8,12 +8,12 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { iniciarSesion } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     contrasena: ''
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'warning' | 'error'>('error');
@@ -34,10 +34,10 @@ export const LoginPage = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setGeneralError('');
-    
+
     // Validar formulario
     const validationErrors = validarFormularioLogin(formData.email, formData.contrasena);
-    
+
     if (validationErrors.length > 0) {
       const errorMap: Record<string, string> = {};
       validationErrors.forEach(error => {
@@ -46,15 +46,17 @@ export const LoginPage = () => {
       setErrors(errorMap);
       return;
     }
-    
+
     setLoading(true);
 
     try {
       const usuario = await iniciarSesion(formData);
-      
+
       // Redirigir según el rol del usuario
       if (usuario && usuario.rol === 'administrador') {
         navigate('/admin');
+      } else if (usuario && usuario.rol === 'vendedor') {
+        navigate('/vendedor');
       } else {
         navigate('/');
       }
@@ -72,7 +74,7 @@ export const LoginPage = () => {
       ...formData,
       [name]: value
     });
-    
+
     // Limpiar error del campo cuando el usuario empieza a escribir
     if (errors[name]) {
       setErrors({
@@ -80,7 +82,7 @@ export const LoginPage = () => {
         [name]: ''
       });
     }
-    
+
     if (generalError) {
       setGeneralError('');
     }
@@ -92,11 +94,11 @@ export const LoginPage = () => {
       ...touched,
       [name]: true
     });
-    
+
     // Validar campo individual
     const validationErrors = validarFormularioLogin(formData.email, formData.contrasena);
     const fieldError = validationErrors.find(error => error.field === name);
-    
+
     if (fieldError) {
       setErrors({
         ...errors,
@@ -121,22 +123,20 @@ export const LoginPage = () => {
                 <h1 className="h2">Iniciar Sesión</h1>
                 <p className="text-muted">Accede a tu cuenta</p>
               </header>
-              
+
               {/* Mensaje general (puede ser error, warning o success) */}
               {generalError && (
-                <div 
-                  className={`alert ${
-                    messageType === 'success' ? 'alert-success' : 
-                    messageType === 'warning' ? 'alert-warning' : 
-                    'alert-danger'
-                  }`} 
+                <div
+                  className={`alert ${messageType === 'success' ? 'alert-success' :
+                    messageType === 'warning' ? 'alert-warning' :
+                      'alert-danger'
+                    }`}
                   role="alert"
                 >
-                  <i className={`bi ${
-                    messageType === 'success' ? 'bi-check-circle-fill' : 
-                    messageType === 'warning' ? 'bi-exclamation-circle-fill' : 
-                    'bi-exclamation-triangle-fill'
-                  } me-2`}></i>
+                  <i className={`bi ${messageType === 'success' ? 'bi-check-circle-fill' :
+                    messageType === 'warning' ? 'bi-exclamation-circle-fill' :
+                      'bi-exclamation-triangle-fill'
+                    } me-2`}></i>
                   {generalError}
                 </div>
               )}
@@ -249,7 +249,7 @@ export const LoginPage = () => {
                       <code>admin@stepstyle.cl</code> / <code>admin123</code>
                     </p>
                   </div>
-                  
+
                   {/* Cuenta Cliente */}
                   <div className="mb-0">
                     <p className="mb-1">
@@ -259,7 +259,20 @@ export const LoginPage = () => {
                       </strong>
                     </p>
                     <p className="text-muted mb-0">
-                      <code>cliente@gmail.com</code> / <code>cliente123</code>
+                      <code>cliente@stepstyle.cl</code> / <code>cliente123</code>
+                    </p>
+                  </div>
+
+                  {/* Cuenta Vendedor */}
+                  <div className="mb-0 mt-2">
+                    <p className="mb-1">
+                      <strong className="text-success">
+                        <i className="bi bi-shop me-1"></i>
+                        Vendedor:
+                      </strong>
+                    </p>
+                    <p className="text-muted mb-0">
+                      <code>vendedor@stepstyle.cl</code> / <code>vendedor123</code>
                     </p>
                   </div>
                 </div>

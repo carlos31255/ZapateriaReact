@@ -33,268 +33,305 @@ import { AdminVentasPage } from '../pages/AdminVentasPage';
 // Páginas de vista previa
 import { PreviewProductosPage } from '../pages/PreviewProductosPage';
 
+// Páginas de vendedor
+import { VendedorProductosPage } from '../pages/VendedorProductosPage';
+import { VendedorVentasPage } from '../pages/VendedorVentasPage';
+import { VendedorLayout } from '../components/layout/layout-components.index';
+
 export const AppRoutes = () => {
   return (
     <>
       {/* ==================== RUTAS NORMALES CON LAYOUT COMPLETO ==================== */}
       <Routes>
         {/* ==================== RUTAS PÚBLICAS ==================== */}
-        
+
         {/* Página principal - bloqueada para admin */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <Layout>
               <PublicRoute>
                 <HomePage />
               </PublicRoute>
             </Layout>
-          } 
+          }
         />
-        
+
         {/* Productos - bloqueada para admin */}
-        <Route 
-          path="/productos" 
+        <Route
+          path="/productos"
           element={
             <Layout>
               <PublicRoute>
                 <ProductosPage />
               </PublicRoute>
             </Layout>
-          } 
+          }
         />
-        
+
         {/* Blog - bloqueada para admin */}
-        <Route 
-          path="/blog" 
+        <Route
+          path="/blog"
           element={
             <Layout>
               <PublicRoute>
                 <BlogPage />
               </PublicRoute>
             </Layout>
-          } 
+          }
         />
-        
+
         {/* Nosotros - bloqueada para admin */}
-        <Route 
-          path="/nosotros" 
+        <Route
+          path="/nosotros"
           element={
             <Layout>
               <PublicRoute>
                 <NosotrosPage />
               </PublicRoute>
             </Layout>
-          } 
+          }
         />
-        
+
         {/* Contacto - bloqueada para admin */}
-        <Route 
-          path="/contacto" 
+        <Route
+          path="/contacto"
           element={
             <Layout>
               <PublicRoute>
                 <ContactoPage />
               </PublicRoute>
             </Layout>
-          } 
+          }
         />
 
         {/* Autenticación */}
         <Route path="/login" element={<Layout><LoginPage /></Layout>} />
         <Route path="/registro" element={<Layout><RegisterPage /></Layout>} />
-        
+
         {/* Página de acceso denegado */}
         <Route path="/unauthorized" element={<Layout><UnauthorizedPage /></Layout>} />
 
         {/* ==================== RUTAS PROTEGIDAS ==================== */}
-        
+
         {/* Carrito - accesible sin login */}
-        <Route 
-          path="/carrito" 
+        <Route
+          path="/carrito"
           element={
             <Layout>
               <PublicRoute>
                 <CarritoPage />
               </PublicRoute>
             </Layout>
-          } 
+          }
         />
 
         {/* Perfil - solo para clientes */}
-        <Route 
-          path="/perfil" 
+        <Route
+          path="/perfil"
           element={
             <Layout>
               <RoleRoute rolesPermitidos={['cliente']}>
                 <PerfilPage />
               </RoleRoute>
             </Layout>
-          } 
+          }
         />
 
         {/* ==================== RUTAS DE ADMINISTRADOR ==================== */}
-        
+
         {/* Panel de administración - solo administradores */}
-        <Route 
-          path="/admin" 
+        <Route
+          path="/admin"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Gestión de productos - solo administradores */}
-        <Route 
-          path="/admin/productos" 
+        <Route
+          path="/admin/productos"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminProductosPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Gestión de usuarios - solo administradores */}
-        <Route 
-          path="/admin/usuarios" 
+        <Route
+          path="/admin/usuarios"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminUsuariosPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Edición de página Nosotros - solo administradores */}
-        <Route 
-          path="/admin/nosotros/edit" 
+        <Route
+          path="/admin/nosotros/edit"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminEditNosotrosPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Gestión de blog - solo administradores */}
-        <Route 
-          path="/admin/blog" 
+        <Route
+          path="/admin/blog"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminBlogPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Crear entrada de blog - solo administradores */}
-        <Route 
-          path="/admin/blog/new" 
+        <Route
+          path="/admin/blog/new"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminEditBlogPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Editar entrada de blog - solo administradores */}
-        <Route 
-          path="/admin/blog/edit/:id" 
+        <Route
+          path="/admin/blog/edit/:id"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminEditBlogPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
         {/* Gestión de ventas - solo administradores */}
-        <Route 
-          path="/admin/ventas" 
+        <Route
+          path="/admin/ventas"
           element={
             <AdminLayout>
               <RoleRoute rolesPermitidos={['administrador']}>
                 <AdminVentasPage />
               </RoleRoute>
             </AdminLayout>
-          } 
+          }
         />
 
-        {/* ==================== RUTAS DE VISTA PREVIA (SOLO LECTURA) ==================== */} 
-        
+        {/* ==================== RUTAS DE VENDEDOR ==================== */}
+
+        {/* Panel de vendedor (redirige a productos) */}
+        <Route
+          path="/vendedor"
+          element={<Navigate to="/vendedor/productos" replace />}
+        />
+
+        {/* Productos Vendedor - Solo Lectura */}
+        <Route
+          path="/vendedor/productos"
+          element={
+            <VendedorLayout>
+              <RoleRoute rolesPermitidos={['vendedor']}>
+                <VendedorProductosPage />
+              </RoleRoute>
+            </VendedorLayout>
+          }
+        />
+
+        {/* Ventas Vendedor - Solo Lectura */}
+        <Route
+          path="/vendedor/ventas"
+          element={
+            <VendedorLayout>
+              <RoleRoute rolesPermitidos={['vendedor']}>
+                <VendedorVentasPage />
+              </RoleRoute>
+            </VendedorLayout>
+          }
+        />
+
+        {/* ==================== RUTAS DE VISTA PREVIA (SOLO LECTURA) ==================== */}
+
         {/* Página principal preview */}
-        <Route 
-          path="/preview" 
+        <Route
+          path="/preview"
           element={
             <RoleRoute rolesPermitidos={['administrador']}>
               <PreviewLayout>
                 <HomePage />
               </PreviewLayout>
             </RoleRoute>
-          } 
+          }
         />
 
         {/* Productos preview */}
-        <Route 
-          path="/preview/productos" 
+        <Route
+          path="/preview/productos"
           element={
             <RoleRoute rolesPermitidos={['administrador']}>
               <PreviewLayout>
                 <PreviewProductosPage />
               </PreviewLayout>
             </RoleRoute>
-          } 
+          }
         />
 
         {/* Blog preview */}
-        <Route 
-          path="/preview/blog" 
+        <Route
+          path="/preview/blog"
           element={
             <RoleRoute rolesPermitidos={['administrador']}>
               <PreviewLayout>
                 <BlogPage />
               </PreviewLayout>
             </RoleRoute>
-          } 
+          }
         />
 
         {/* Nosotros preview */}
-        <Route 
-          path="/preview/nosotros" 
+        <Route
+          path="/preview/nosotros"
           element={
             <RoleRoute rolesPermitidos={['administrador']}>
               <PreviewLayout>
                 <NosotrosPage />
               </PreviewLayout>
             </RoleRoute>
-          } 
+          }
         />
 
         {/* Contacto preview */}
-        <Route 
-          path="/preview/contacto" 
+        <Route
+          path="/preview/contacto"
           element={
             <RoleRoute rolesPermitidos={['administrador']}>
               <PreviewLayout>
                 <ContactoPage />
               </PreviewLayout>
             </RoleRoute>
-          } 
+          }
         />
 
         {/* ==================== RUTAS NO ENCONTRADAS ==================== */}
-        
+
         {/* Redirigir rutas no encontradas al inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

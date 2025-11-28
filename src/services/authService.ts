@@ -40,7 +40,7 @@ export const authService = {
                 run: run || '',
                 nombre: nombre || '',
                 email: email || '',
-                rol: rol.toLowerCase() as any,
+                rol: (rol === 'ADMIN' ? 'administrador' : rol.toLowerCase()) as any,
                 genero: genero || '',
                 fechaNacimiento: fechaNacimiento || '',
                 region: region || '',

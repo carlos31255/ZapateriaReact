@@ -6,6 +6,8 @@ import type { Usuario } from '../types';
 import { useUsuarios } from '../hooks';
 import { usePedidos } from '../hooks/usePedidos';
 import { formatearPrecio } from '../helpers/productService';
+import { geografiaService } from '../services/geografiaService';
+import type { Region } from '../types';
 
 export const PerfilPage = () => {
   const { usuario, cerrarSesionUsuario, actualizarSesion } = useAuth();
@@ -28,9 +30,25 @@ export const PerfilPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [regiones, setRegiones] = useState<Region[]>([]);
+
+  useEffect(() => {
+    const cargarRegiones = async () => {
+      try {
+        const data = await geografiaService.getAllRegiones();
+        console.log('Regiones cargadas:', data);
+        setRegiones(data);
+      } catch (error) {
+        console.error('Error al cargar regiones:', error);
+      }
+    };
+    cargarRegiones();
+  }, []);
 
   useEffect(() => {
     if (usuario) {
+      console.log('Usuario actual:', usuario);
+      console.log('Región del usuario:', usuario.region);
       cargarDatosUsuario();
     }
   }, [usuario]);
@@ -395,11 +413,11 @@ export const PerfilPage = () => {
                         required
                       >
                         <option value="">Seleccionar...</option>
-                        <option value="Metropolitana">Región Metropolitana</option>
-                        <option value="Valparaíso">Valparaíso</option>
-                        <option value="Biobío">Biobío</option>
-                        <option value="Araucanía">Araucanía</option>
-                        <option value="Los Lagos">Los Lagos</option>
+                        {regiones.map(region => (
+                          <option key={region.idRegion} value={region.nombreRegion}>
+                            {region.nombreRegion}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     {/* Campo Comuna - Input editable */}
@@ -649,7 +667,7 @@ export const PerfilPage = () => {
                                           <td>
                                             <div className="d-flex align-items-center">
                                               <img
-                                                src={item.imagen}
+                                                src={item.imagen || 'https://via.placeholder.com/40'}
                                                 alt={item.nombre}
                                                 style={{ width: '40px', height: '40px', objectFit: 'cover' }}
                                                 className="rounded me-2"
