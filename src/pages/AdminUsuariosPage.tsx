@@ -7,6 +7,7 @@ export const AdminUsuariosPage = () => {
   const { usuarios, eliminarUsuario, actualizarUsuario, crearUsuario } = useUsuarios();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Registrar visita a esta página
@@ -18,6 +19,17 @@ export const AdminUsuariosPage = () => {
     recentLinks = recentLinks.slice(0, 10);
     localStorage.setItem('admin_recent_pages', JSON.stringify(recentLinks));
   }, []);
+
+  useEffect(() => {
+    // Desactivar loading cuando los usuarios se carguen
+    if (usuarios.length > 0) {
+      setLoading(false);
+    } else {
+      // Dar un pequeño delay para evitar flash de loading
+      const timer = setTimeout(() => setLoading(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [usuarios]);
 
   const abrirModal = (usuario?: Usuario) => {
     if (usuario) {
@@ -115,65 +127,76 @@ export const AdminUsuariosPage = () => {
 
       {/* Tabla de usuarios */}
       <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Fecha de Registro</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((usuario) => (
-              <tr key={usuario.id}>
-                <td>#{usuario.id}</td>
-                <td>
-                  <div className={styles.userName}>{usuario.nombre}</div>
-                </td>
-                <td>{usuario.email}</td>
-                <td>
-                  <span className={`${styles.rolBadge} ${getRoleBadgeClass(usuario.rol)}`}>
-                    {usuario.rol}
-                  </span>
-                </td>
-                <td>
-                  {new Date(usuario.fechaRegistro).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </td>
-                <td>
-                  <div className={styles.actions}>
-                    <button
-                      onClick={() => abrirModal(usuario)}
-                      className={styles.editButton}
-                      title="Editar usuario"
-                    >
-                      <i className="bi bi-pencil-square"></i>
-                    </button>
-                    <button
-                      onClick={() => handleEliminar(usuario.id)}
-                      className={styles.deleteButton}
-                      title="Eliminar usuario"
-                    >
-                      <i className="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {usuarios.length === 0 && (
+        {loading ? (
           <div className={styles.emptyState}>
-            <i className="bi bi-people" style={{ fontSize: '3rem', color: '#dee2e6' }}></i>
-            <p>No hay usuarios registrados</p>
+            <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            <p style={{ marginTop: '1rem' }}>Cargando usuarios...</p>
           </div>
+        ) : (
+          <>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Fecha de Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.map((usuario) => (
+                  <tr key={usuario.id}>
+                    <td>#{usuario.id}</td>
+                    <td>
+                      <div className={styles.userName}>{usuario.nombre}</div>
+                    </td>
+                    <td>{usuario.email}</td>
+                    <td>
+                      <span className={`${styles.rolBadge} ${getRoleBadgeClass(usuario.rol)}`}>
+                        {usuario.rol}
+                      </span>
+                    </td>
+                    <td>
+                      {new Date(usuario.fechaRegistro).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </td>
+                    <td>
+                      <div className={styles.actions}>
+                        <button
+                          onClick={() => abrirModal(usuario)}
+                          className={styles.editButton}
+                          title="Editar usuario"
+                        >
+                          <i className="bi bi-pencil-square"></i>
+                        </button>
+                        <button
+                          onClick={() => handleEliminar(usuario.id)}
+                          className={styles.deleteButton}
+                          title="Eliminar usuario"
+                        >
+                          <i className="bi bi-trash3"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {usuarios.length === 0 && (
+              <div className={styles.emptyState}>
+                <i className="bi bi-people" style={{ fontSize: '3rem', color: '#dee2e6' }}></i>
+                <p>No hay usuarios registrados</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

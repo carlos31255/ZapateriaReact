@@ -7,7 +7,7 @@ import { useUsuarios } from '../hooks';
 import { usePedidos } from '../hooks/usePedidos';
 import { formatearPrecio } from '../helpers/productService';
 import { geografiaService } from '../services/geografiaService';
-import type { Region } from '../types';
+import type { Region, Comuna } from '../types';
 
 export const PerfilPage = () => {
   const { usuario, cerrarSesionUsuario, actualizarSesion } = useAuth();
@@ -31,6 +31,7 @@ export const PerfilPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [regiones, setRegiones] = useState<Region[]>([]);
+  const [comunas, setComunas] = useState<Comuna[]>([]);
 
   useEffect(() => {
     const cargarRegiones = async () => {
@@ -49,6 +50,7 @@ export const PerfilPage = () => {
     if (usuario) {
       console.log('Usuario actual:', usuario);
       console.log('Región del usuario:', usuario.region);
+      console.log('Comuna del usuario:', usuario.comuna);
       cargarDatosUsuario();
     }
   }, [usuario]);
@@ -57,7 +59,7 @@ export const PerfilPage = () => {
     if (!usuario) return;
 
     // Usar directamente los datos del usuario del contexto
-    setFormData({
+    const datosFormulario = {
       nombre: usuario.nombre || '',
       email: usuario.email || '',
       telefono: usuario.telefono || '+56',
@@ -66,7 +68,10 @@ export const PerfilPage = () => {
       region: usuario.region || '',
       comuna: usuario.comuna || '',
       direccion: usuario.direccion || ''
-    });
+    };
+
+    console.log('Datos cargados en el formulario:', datosFormulario);
+    setFormData(datosFormulario);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -163,6 +168,29 @@ export const PerfilPage = () => {
       ...formData,
       [name]: value
     });
+  };
+
+  const handleRegionChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const regionName = e.target.value;
+    const region = regiones.find(r => r.nombreRegion === regionName);
+
+    setFormData({
+      ...formData,
+      region: regionName,
+      comuna: ''
+    });
+
+    if (region) {
+      try {
+        const data = await geografiaService.getComunasByRegion(region.idRegion);
+        setComunas(data);
+      } catch (error) {
+        console.error('Error cargando comunas:', error);
+        setComunas([]);
+      }
+    } else {
+      setComunas([]);
+    }
   };
 
   const handleCerrarSesion = async () => {
@@ -408,7 +436,7 @@ export const PerfilPage = () => {
                         id="region"
                         name="region"
                         value={formData.region}
-                        onChange={handleChange}
+                        onChange={handleRegionChange}
                         disabled={!editMode}
                         required
                       >
@@ -420,22 +448,28 @@ export const PerfilPage = () => {
                         ))}
                       </select>
                     </div>
-                    {/* Campo Comuna - Input editable */}
+                    {/* Campo Comuna - Select editable */}
                     <div className="col-md-6">
                       <label htmlFor="comuna" className="form-label">
                         Comuna
                       </label>
-                      {/* Input de texto para comuna */}
-                      <input
-                        type="text"
+                      {/* Select con comunas dinámicas */}
+                      <select
                         className="form-control"
                         id="comuna"
                         name="comuna"
                         value={formData.comuna}
                         onChange={handleChange}
-                        disabled={!editMode}
+                        disabled={!editMode || !formData.region}
                         required
-                      />
+                      >
+                        <option value="">Seleccionar...</option>
+                        {comunas.map(comuna => (
+                          <option key={comuna.idComuna} value={comuna.nombreComuna}>
+                            {comuna.nombreComuna}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 

@@ -6,7 +6,7 @@ import type { Pedido } from '../types';
 import styles from './AdminVentasPage.module.css'; // Reutilizamos estilos del admin
 
 export const VendedorVentasPage = () => {
-    const { pedidos, fetchPedidos, calcularEstadisticas } = usePedidos();
+    const { pedidos, loading, fetchPedidos, calcularEstadisticas } = usePedidos();
     const [filtroEstado, setFiltroEstado] = useState<string>('todos');
     const [pedidosFiltrados, setPedidosFiltrados] = useState<Pedido[]>([]);
     const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
@@ -138,70 +138,81 @@ export const VendedorVentasPage = () => {
 
             {/* Tabla de pedidos */}
             <div className={styles.tableContainer}>
-                <table className={styles.table}>
-                    <thead>
-                        <tr>
-                            <th>ID Pedido</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pedidosFiltrados.map((pedido) => (
-                            <tr key={pedido.id}>
-                                <td>
-                                    <span className={styles.pedidoId}>#{pedido.id.slice(0, 8)}</span>
-                                </td>
-                                <td>
-                                    <div className={styles.clienteInfo}>
-                                        <span className={styles.clienteNombre}>{pedido.nombreUsuario}</span>
-                                        <span className={styles.clienteEmail}>{pedido.emailUsuario}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    {new Date(pedido.fecha).toLocaleDateString('es-ES', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </td>
-                                <td>
-                                    <span className={styles.itemsCount}>{pedido.items.length} items</span>
-                                </td>
-                                <td>
-                                    <span className={styles.total}>${pedido.total.toLocaleString('es-CL')}</span>
-                                </td>
-                                <td>
-                                    <span className={`${styles.estadoBadge} ${getEstadoBadgeClass(pedido.estado)}`}>
-                                        <i className={getEstadoIcon(pedido.estado)}></i>
-                                        {pedido.estado}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button
-                                        onClick={() => abrirDetalle(pedido)}
-                                        className={styles.detailButton}
-                                        title="Ver detalles"
-                                    >
-                                        <i className="bi bi-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {pedidosFiltrados.length === 0 && (
+                {loading ? (
                     <div className={styles.emptyState}>
-                        <i className="bi bi-inbox" style={{ fontSize: '3rem', color: '#dee2e6' }}></i>
-                        <p>No hay pedidos {filtroEstado !== 'todos' ? `en estado "${filtroEstado}"` : 'registrados'}</p>
+                        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+                            <span className="visually-hidden">Cargando...</span>
+                        </div>
+                        <p style={{ marginTop: '1rem' }}>Cargando pedidos...</p>
                     </div>
+                ) : (
+                    <>
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th>ID Pedido</th>
+                                    <th>Cliente</th>
+                                    <th>Fecha</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pedidosFiltrados.map((pedido) => (
+                                    <tr key={pedido.id}>
+                                        <td>
+                                            <span className={styles.pedidoId}>#{pedido.id.slice(0, 8)}</span>
+                                        </td>
+                                        <td>
+                                            <div className={styles.clienteInfo}>
+                                                <span className={styles.clienteNombre}>{pedido.nombreUsuario}</span>
+                                                <span className={styles.clienteEmail}>{pedido.emailUsuario}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {new Date(pedido.fecha).toLocaleDateString('es-ES', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </td>
+                                        <td>
+                                            <span className={styles.itemsCount}>{pedido.items.length} items</span>
+                                        </td>
+                                        <td>
+                                            <span className={styles.total}>${pedido.total.toLocaleString('es-CL')}</span>
+                                        </td>
+                                        <td>
+                                            <span className={`${styles.estadoBadge} ${getEstadoBadgeClass(pedido.estado)}`}>
+                                                <i className={getEstadoIcon(pedido.estado)}></i>
+                                                {pedido.estado}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button
+                                                onClick={() => abrirDetalle(pedido)}
+                                                className={styles.detailButton}
+                                                title="Ver detalles"
+                                            >
+                                                <i className="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {pedidosFiltrados.length === 0 && (
+                            <div className={styles.emptyState}>
+                                <i className="bi bi-inbox" style={{ fontSize: '3rem', color: '#dee2e6' }}></i>
+                                <p>No hay pedidos {filtroEstado !== 'todos' ? `en estado "${filtroEstado}"` : 'registrados'}</p>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 

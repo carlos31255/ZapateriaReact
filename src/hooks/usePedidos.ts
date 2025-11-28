@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { ventasService } from '../services/ventasService';
+import { inventarioService } from '../services/inventarioService';
 import { useAuth } from '../context/AuthContext';
-import type { Pedido, CategoriaProducto } from '../types';
+import type { Pedido, CategoriaProducto, TallaCalzado } from '../types';
 
 export const usePedidos = () => {
   const { usuario } = useAuth();
@@ -21,8 +22,18 @@ export const usePedidos = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Cargando pedidos para cliente:', usuario.idPersonaBackend);
-      const boletas = await ventasService.getBoletasByCliente(usuario.idPersonaBackend);
+
+      // Si es admin o vendedor, cargar TODAS las boletas
+      // Si es cliente, cargar solo sus boletas
+      let boletas;
+      if (usuario.rol === 'administrador' || usuario.rol === 'vendedor') {
+        console.log('Cargando TODAS las boletas (admin/vendedor)');
+        boletas = await ventasService.getAllBoletas();
+      } else {
+        console.log('Cargando pedidos para cliente:', usuario.idPersonaBackend);
+        boletas = await ventasService.getBoletasByCliente(usuario.idPersonaBackend);
+      }
+
       console.log('Boletas encontradas:', boletas);
 
       // Mapear boletas a pedidos
@@ -34,6 +45,51 @@ export const usePedidos = () => {
           const subtotal = detalles.reduce((sum, d) => sum + (d.precioUnitario * d.cantidad), 0);
           const descuento = 0; // Implementar descuentos
 
+          // Obtener datos reales de los productos desde el inventario
+          const items = await Promise.all(
+            detalles.map(async (d) => {
+              try {
+                const inventario = await inventarioService.getInventarioById(d.idInventario);
+
+                return {
+                  // Propiedades de Producto
+                  id: d.idInventario,
+                  productoId: d.idInventario,
+                  nombre: inventario.modelo?.nombreModelo || `Producto ${d.idInventario}`,
+                  descripcion: inventario.modelo?.descripcion || '',
+                  imagen: inventario.modelo?.imagenUrl || '',
+                  precio: d.precioUnitario,
+                  categoria: (inventario.modelo?.categoria || 'hombre') as CategoriaProducto,
+                  stock: inventario.stockActual || 0,
+                  stockPorTalla: [],
+                  destacado: false,
+                  // Propiedades de ProductoCarrito
+                  cantidad: d.cantidad,
+                  tallaSeleccionada: inventario.talla?.numeroTalla ? Number(inventario.talla.numeroTalla) as TallaCalzado : undefined,
+                  idInventario: d.idInventario
+                };
+              } catch (error) {
+                console.error(`Error cargando producto ${d.idInventario}:`, error);
+                // Retornar datos por defecto si falla
+                return {
+                  id: d.idInventario,
+                  productoId: d.idInventario,
+                  nombre: `Producto ${d.idInventario}`,
+                  descripcion: '',
+                  imagen: '',
+                  precio: d.precioUnitario,
+                  categoria: 'hombre' as CategoriaProducto,
+                  stock: 0,
+                  stockPorTalla: [],
+                  destacado: false,
+                  cantidad: d.cantidad,
+                  tallaSeleccionada: undefined,
+                  idInventario: d.idInventario
+                };
+              }
+            })
+          );
+
           return {
             id: boleta.idBoleta.toString(),
             usuarioId: usuario.id,
@@ -41,23 +97,7 @@ export const usePedidos = () => {
             emailUsuario: usuario.email,
             fecha: new Date().toISOString(), // Usar fecha real cuando esté disponible
             estado: boleta.estado as 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado',
-            items: detalles.map(d => ({
-              // Propiedades de Producto
-              id: d.idInventario,
-              productoId: d.idInventario,
-              nombre: `Producto ${d.idInventario}`, // Obtener nombre real
-              descripcion: '', // Obtener descripción real
-              imagen: '', // Obtener imagen real
-              precio: d.precioUnitario,
-              categoria: 'hombre' as CategoriaProducto, // Obtener categoría real
-              stock: 0, // Obtener stock real
-              stockPorTalla: [],
-              destacado: false,
-              // Propiedades de ProductoCarrito
-              cantidad: d.cantidad,
-              tallaSeleccionada: undefined, // Obtener talla real
-              idInventario: d.idInventario
-            })),
+            items,
             subtotal,
             descuento,
             total: subtotal - descuento,
@@ -95,11 +135,15 @@ export const usePedidos = () => {
 
       // Crear detalles de boleta
       for (const item of pedido.items) {
+        const precioUnitario = Math.round(item.precio);
+        const subtotal = Math.round(item.precio * item.cantidad);
+
         await ventasService.addDetalle({
-          boleta: nuevaBoleta,
-          idInventario: item.idInventario || item.id,
+          boleta: { idBoleta: nuevaBoleta.idBoleta },
+          inventario: { idInventario: item.idInventario || item.id },
           cantidad: item.cantidad,
-          precioUnitario: item.precio
+          precioUnitario: precioUnitario,
+          subtotal: subtotal
         });
       }
 

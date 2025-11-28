@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import type { DatosRegistro } from '../types';
 import { validarFormularioRegistro, type DatosRegistroValidacion } from '../utils/validations/validations.index';
 import { geografiaService, type Region, type Comuna } from '../services/geografiaService';
 
 export const RegisterPage = () => {
-  const navigate = useNavigate();
   const { registrarUsuario } = useAuth();
 
   const [formData, setFormData] = useState<DatosRegistro>({
@@ -32,6 +31,7 @@ export const RegisterPage = () => {
   const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   // Cargar regiones al montar el componente
   useEffect(() => {
@@ -67,7 +67,8 @@ export const RegisterPage = () => {
 
     try {
       await registrarUsuario(formData);
-      navigate('/login');
+      setRegistrationSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       const mensajeError = err instanceof Error ? err.message : 'Error al registrar usuario';
 
@@ -129,7 +130,9 @@ export const RegisterPage = () => {
 
   const handleRegionChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const regionName = e.target.value;
+    console.log('Región seleccionada:', regionName);
     const region = regiones.find(r => r.nombreRegion === regionName);
+    console.log('Región encontrada:', region);
 
     setFormData({
       ...formData,
@@ -139,7 +142,9 @@ export const RegisterPage = () => {
 
     if (region) {
       try {
+        console.log('Cargando comunas para región ID:', region.idRegion);
         const data = await geografiaService.getComunasByRegion(region.idRegion);
+        console.log('Comunas cargadas:', data);
         setComunas(data);
       } catch (error) {
         console.error('Error cargando comunas:', error);
@@ -178,6 +183,29 @@ export const RegisterPage = () => {
       setErrors({ ...errors, [name]: '' });
     }
   };
+
+  if (registrationSuccess) {
+    return (
+      <div className="container">
+        <div className="row justify-content-center py-5">
+          <div className="col-md-8 col-lg-6">
+            <div className="card shadow text-center p-5">
+              <div className="mb-4">
+                <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '4rem' }}></i>
+              </div>
+              <h2 className="mb-3">¡Registro Exitoso!</h2>
+              <p className="text-muted mb-4">
+                Tu cuenta ha sido creada correctamente. Ahora puedes iniciar sesión para comenzar a comprar.
+              </p>
+              <Link to="/login" className="btn btn-primary btn-lg w-100">
+                Iniciar Sesión
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
