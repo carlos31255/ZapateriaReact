@@ -26,7 +26,7 @@ describe('contactService', () => {
 
             const result = await contactService.enviarMensaje(contactData);
 
-            expect(axios.post).toHaveBeenCalledWith('http://localhost:8081/api/v1/contacto', contactData);
+            expect(axios.post).toHaveBeenCalledWith(`${import.meta.env.VITE_API_USUARIO_URL}/api/v1/contacto`, contactData);
             expect(result).toEqual(mockResponse);
         });
     });
