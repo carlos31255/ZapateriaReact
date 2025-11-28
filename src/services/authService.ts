@@ -8,7 +8,7 @@ export const authService = {
     login: async (credenciales: CredencialesLogin): Promise<UsuarioAutenticado> => {
         try {
             // Llamar al endpoint de login con JWT
-            const response = await axios.post(`${API_URL}/auth/login`, {
+            const response = await axios.post(`${API_URL}/api/v1/auth/login`, {
                 email: credenciales.email,
                 password: credenciales.contrasena
             });
@@ -62,7 +62,7 @@ export const authService = {
 
     logout: async (): Promise<void> => {
         try {
-            await axiosInstance.post(`${API_URL}/auth/logout`);
+            await axiosInstance.post(`${API_URL}/api/v1/auth/logout`);
         } catch (error) {
             console.error('Error en logout:', error);
         } finally {
@@ -93,7 +93,7 @@ export const authService = {
                 password: datos.contrasena
             };
 
-            await axios.post(`${API_URL}/auth/register`, registerRequest);
+            await axios.post(`${API_URL}/api/v1/auth/register`, registerRequest);
 
         } catch (error) {
             console.error('Error en registro:', error);
@@ -103,21 +103,21 @@ export const authService = {
 
     // Gestión de usuarios (para administradores)
     getAllUsuarios: async (): Promise<UsuarioBackend[]> => {
-        const response = await axiosInstance.get<UsuarioBackend[]>(`${API_URL}/usuarios`);
+        const response = await axiosInstance.get<UsuarioBackend[]>(`${API_URL}/api/v1/usuarios`);
         return response.data;
     },
 
     getUsuarioById: async (id: number): Promise<UsuarioBackend> => {
-        const response = await axiosInstance.get<UsuarioBackend>(`${API_URL}/usuarios/${id}`);
+        const response = await axiosInstance.get<UsuarioBackend>(`${API_URL}/api/v1/usuarios/${id}`);
         return response.data;
     },
 
     updateUsuario: async (id: number, usuario: Partial<UsuarioBackend>): Promise<UsuarioBackend> => {
-        const response = await axiosInstance.put<UsuarioBackend>(`${API_URL}/usuarios/${id}`, usuario);
+        const response = await axiosInstance.put<UsuarioBackend>(`${API_URL}/api/v1/usuarios/${id}`, usuario);
         return response.data;
     },
 
     deleteUsuario: async (id: number): Promise<void> => {
-        await axiosInstance.delete(`${API_URL}/usuarios/${id}`);
+        await axiosInstance.delete(`${API_URL}/api/v1/usuarios/${id}`);
     }
 };

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api/contacto';
+const API_URL = 'http://localhost:8081/api/v1/contacto';
 
 export interface ContactoData {
     nombre: string;
