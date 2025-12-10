@@ -66,26 +66,41 @@ export const useProducts = () => {
     return productos.find(p => p.id === id);
   };
 
-  const crearProducto = async (producto: Omit<Producto, 'id'>): Promise<Producto | null> => {
+  const crearProducto = async (producto: Omit<Producto, 'id'>, imagenFile?: File): Promise<Producto | null> => {
     try {
+      // Crear el modelo primero (sin imagen o con URL temporal)
       const nuevoModelo = await inventarioService.createModelo({
         nombreModelo: producto.nombre,
         descripcion: producto.descripcion,
         precioUnitario: producto.precio,
-        imagenUrl: producto.imagen,
+        imagenUrl: producto.imagen || '', // URL temporal o vacía
+        categoria: producto.categoria,
         marca: { idMarca: 1, nombreMarca: '', descripcion: '', estado: 'activo' } as any,
         estado: 'activo'
       });
 
-      // Crear inventario para cada talla
-      if (producto.stockPorTalla && producto.stockPorTalla.length > 0) {
-        for (const stockTalla of producto.stockPorTalla) {
-          await inventarioService.createInventario({
-            modelo: nuevoModelo,
-            talla: { idTalla: stockTalla.talla, numeroTalla: stockTalla.talla.toString() } as any,
-            stockActual: stockTalla.stock
-          });
+      // Si hay un archivo de imagen, subirlo
+      if (imagenFile) {
+        try {
+          await inventarioService.uploadImagenModelo(nuevoModelo.idModelo, imagenFile);
+        } catch (err) {
+          console.error('Error subiendo imagen:', err);
+          // Continuar aunque falle la imagen
         }
+      }
+
+      // ✅ FIX: Crear inventario para TODAS las tallas para que el producto aparezca
+      // Si no hay stockPorTalla, crear al menos una entrada con stock 0
+      const tallasParaCrear = producto.stockPorTalla && producto.stockPorTalla.length > 0
+        ? producto.stockPorTalla
+        : [{ talla: 39 as TallaCalzado, stock: 0 }]; // Talla por defecto
+
+      for (const stockTalla of tallasParaCrear) {
+        await inventarioService.createInventario({
+          modelo: nuevoModelo,
+          talla: { idTalla: stockTalla.talla, numeroTalla: stockTalla.talla.toString() } as any,
+          stockActual: stockTalla.stock
+        });
       }
 
       await cargarProductos();

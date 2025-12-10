@@ -23,6 +23,9 @@ export const AdminProductosPage = () => {
     TALLAS_DISPONIBLES.map(talla => ({ talla, stock: 0 }))
   );
 
+  const [imagenFile, setImagenFile] = useState<File | null>(null);
+  const [imagenPreview, setImagenPreview] = useState<string>('');
+
   useEffect(() => {
     // Registrar visita a esta página
     const link = '/admin/productos';
@@ -34,6 +37,8 @@ export const AdminProductosPage = () => {
     localStorage.setItem('admin_recent_pages', JSON.stringify(recentLinks));
   }, []);
 
+
+  // Manejar cambios en los campos del formulario
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
@@ -42,6 +47,19 @@ export const AdminProductosPage = () => {
     }));
   };
 
+  // Manejar cambios en el archivo de imagen
+  const handleImagenFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImagenFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagenPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  // Abrir modal para nuevo producto
   const abrirModalNuevo = () => {
     setProductoEditar(null);
     setFormData({
@@ -53,6 +71,8 @@ export const AdminProductosPage = () => {
       destacado: false
     });
     setStockPorTalla(TALLAS_DISPONIBLES.map(talla => ({ talla, stock: 0 })));
+    setImagenFile(null);
+    setImagenPreview('');
     setShowModal(true);
   };
 
@@ -301,15 +321,39 @@ export const AdminProductosPage = () => {
                 </div>
 
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
-                  <label>URL de Imagen *</label>
+                  <label>
+                    <i className="bi bi-image me-2"></i>
+                    Imagen del Producto *
+                  </label>
                   <input
-                    type="url"
-                    name="imagen"
-                    value={formData.imagen}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="https://images.unsplash.com/..."
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImagenFileChange}
+                    style={{
+                      padding: '10px',
+                      border: '2px dashed #ddd',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      width: '100%'
+                    }}
                   />
+                  {imagenPreview && (
+                    <div style={{ marginTop: '15px', textAlign: 'center' }}>
+                      <img
+                        src={imagenPreview}
+                        alt="Preview"
+                        style={{
+                          maxWidth: '300px',
+                          maxHeight: '300px',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                    </div>
+                  )}
+                  <small className="text-muted d-block mt-2">
+                    Formatos aceptados: JPG, PNG, GIF. Tamaño máximo: 5MB
+                  </small>
                 </div>
 
                 <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>

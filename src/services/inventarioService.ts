@@ -71,5 +71,21 @@ export const inventarioService = {
 
     deleteInventario: async (id: number): Promise<void> => {
         await axiosInstance.delete(`${API_URL}/inventario/${id}`);
+    },
+
+    // Upload imagen como BLOB
+    uploadImagenModelo: async (id: number, file: File): Promise<ModeloZapato> => {
+        const formData = new FormData();
+        formData.append('imagen', file);
+        const response = await axiosInstance.post<ModeloZapato>(
+            `${API_URL}/modelos/${id}/imagen`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        );
+        return response.data;
     }
 };
