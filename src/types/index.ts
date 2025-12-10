@@ -72,6 +72,7 @@ export interface ModeloZapato {
   descripcion: string;
   precioUnitario: number;
   imagenUrl: string;
+  imagen?: number[] | null; // BLOB como array de bytes o null
   estado: string;
   categoria?: string;
 }

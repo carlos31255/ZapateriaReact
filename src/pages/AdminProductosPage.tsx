@@ -25,6 +25,7 @@ export const AdminProductosPage = () => {
 
   const [imagenFile, setImagenFile] = useState<File | null>(null);
   const [imagenPreview, setImagenPreview] = useState<string>('');
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     // Registrar visita a esta página
@@ -120,6 +121,7 @@ export const AdminProductosPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGuardando(true);
 
     try {
       // Calcular stock total
@@ -127,7 +129,7 @@ export const AdminProductosPage = () => {
 
       const productoData = {
         nombre: formData.nombre,
-        precio: Number(formData.precio),
+        precio: Number(formData.precio.replace(/\./g, '')), // Remover puntos antes de convertir
         imagen: formData.imagen,
         categoria: formData.categoria,
         descripcion: formData.descripcion,
@@ -148,6 +150,8 @@ export const AdminProductosPage = () => {
     } catch (error) {
       console.error('Error al guardar producto:', error);
       alert('Error al guardar el producto');
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -394,13 +398,32 @@ export const AdminProductosPage = () => {
                 </div>
               </div>
 
+
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelButton} onClick={() => setShowModal(false)}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setShowModal(false)}
+                  disabled={guardando}
+                >
                   Cancelar
                 </button>
-                <button type="submit" className={styles.saveButton}>
-                  <i className="bi bi-check-lg me-2"></i>
-                  {productoEditar ? 'Guardar Cambios' : 'Crear Producto'}
+                <button
+                  type="submit"
+                  className={styles.saveButton}
+                  disabled={guardando}
+                >
+                  {guardando ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      {productoEditar ? 'Guardando...' : 'Creando...'}
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-check-lg me-2"></i>
+                      {productoEditar ? 'Guardar Cambios' : 'Crear Producto'}
+                    </>
+                  )}
                 </button>
               </div>
             </form>

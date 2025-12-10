@@ -22,18 +22,26 @@ export const useProducts = () => {
         const modelo = inv.modelo;
         const idModelo = modelo.idModelo;
 
+        // Filtrar productos inactivos (soft delete)
+        if (modelo.estado === 'inactivo') {
+          return;
+        }
+
         if (!productosMap.has(idModelo)) {
           productosMap.set(idModelo, {
             id: idModelo,
             nombre: modelo.nombreModelo,
             precio: modelo.precioUnitario,
-            imagen: modelo.imagenUrl,
+            // Priorizar BLOB sobre URL - usar endpoint de imagen si existe
+            imagen: modelo.imagen
+              ? `${import.meta.env.VITE_API_INVENTARIO_URL}/modelos/${idModelo}/imagen`
+              : modelo.imagenUrl || '',
             categoria: (modelo.categoria as 'hombre' | 'mujer' | 'niños') || 'hombre',
             descripcion: modelo.descripcion,
             stock: 0,
             stockPorTalla: [],
             marca: modelo.marca.nombreMarca,
-            destacado: true // Temporal: Marcar todos como destacados
+            destacado: false // Se marcará después solo los primeros 4
           });
         }
 
@@ -47,6 +55,12 @@ export const useProducts = () => {
       });
 
       const nuevosProductos = Array.from(productosMap.values());
+
+      // Marcar solo los primeros 4 productos como destacados
+      nuevosProductos.slice(0, 4).forEach(producto => {
+        producto.destacado = true;
+      });
+
       setProductos(nuevosProductos);
       return nuevosProductos;
     } catch (err) {
