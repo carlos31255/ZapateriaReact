@@ -82,11 +82,15 @@ export const useProducts = () => {
       // Si hay un archivo de imagen, subirlo
       if (imagenFile) {
         try {
-          await inventarioService.uploadImagenModelo(nuevoModelo.idModelo, imagenFile);
+          console.log('📸 Subiendo imagen:', imagenFile.name, 'Tamaño:', imagenFile.size, 'bytes');
+          const resultado = await inventarioService.uploadImagenModelo(nuevoModelo.idModelo, imagenFile);
+          console.log('✅ Imagen subida exitosamente:', resultado);
         } catch (err) {
-          console.error('Error subiendo imagen:', err);
+          console.error('❌ Error subiendo imagen:', err);
           // Continuar aunque falle la imagen
         }
+      } else {
+        console.warn('⚠️ No se proporcionó archivo de imagen');
       }
 
       // ✅ FIX: Crear inventario para TODAS las tallas para que el producto aparezca
@@ -95,12 +99,22 @@ export const useProducts = () => {
         ? producto.stockPorTalla
         : [{ talla: 39 as TallaCalzado, stock: 0 }]; // Talla por defecto
 
+      // Obtener todas las tallas de la BD para mapear número a ID
+      const tallasDB = await inventarioService.getAllTallas();
+
       for (const stockTalla of tallasParaCrear) {
-        await inventarioService.createInventario({
-          modelo: nuevoModelo,
-          talla: { idTalla: stockTalla.talla, numeroTalla: stockTalla.talla.toString() } as any,
-          stockActual: stockTalla.stock
-        });
+        // Buscar el ID real de la talla en la BD
+        const tallaDB = tallasDB.find(t => parseInt(t.numeroTalla) === stockTalla.talla);
+
+        if (tallaDB) {
+          await inventarioService.createInventario({
+            modelo: nuevoModelo,
+            talla: tallaDB,
+            stockActual: stockTalla.stock
+          });
+        } else {
+          console.warn(`Talla ${stockTalla.talla} no encontrada en la BD`);
+        }
       }
 
       await cargarProductos();

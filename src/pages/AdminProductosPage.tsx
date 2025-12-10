@@ -59,6 +59,20 @@ export const AdminProductosPage = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  // Manejar cambios en el precio con formato automático
+  const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Remover todo excepto números
+    const numericValue = value.replace(/\D/g, '');
+    // Formatear con puntos de miles
+    const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    setFormData(prev => ({
+      ...prev,
+      precio: formattedValue
+    }));
+  };
+
   // Abrir modal para nuevo producto
   const abrirModalNuevo = () => {
     setProductoEditar(null);
@@ -126,8 +140,8 @@ export const AdminProductosPage = () => {
         // Actualizar producto existente
         await actualizarProducto(productoEditar.id, productoData);
       } else {
-        // Agregar nuevo producto
-        await crearProducto(productoData);
+        // Agregar nuevo producto con imagen
+        await crearProducto(productoData, imagenFile || undefined);
       }
 
       setShowModal(false);
@@ -267,13 +281,12 @@ export const AdminProductosPage = () => {
                 <div className={styles.formGroup}>
                   <label>Precio *</label>
                   <input
-                    type="number"
+                    type="text"
                     name="precio"
                     value={formData.precio}
-                    onChange={handleInputChange}
+                    onChange={handlePrecioChange}
                     required
-                    min="0"
-                    placeholder="Ej: 89990"
+                    placeholder="Ej: 89.990"
                   />
                 </div>
 
